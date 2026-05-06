@@ -23,16 +23,6 @@
     </objectPermissions>
     <fieldPermissions>
         <editable>true</editable>
-        <field>Nimbus_Order__c.Status__c</field>
-        <readable>true</readable>
-    </fieldPermissions>
-    <fieldPermissions>
-        <editable>true</editable>
-        <field>Nimbus_Order__c.Customer_Email__c</field>
-        <readable>true</readable>
-    </fieldPermissions>
-    <fieldPermissions>
-        <editable>true</editable>
         <field>Nimbus_Order__c.Tracking_Number__c</field>
         <readable>true</readable>
     </fieldPermissions>
@@ -54,31 +44,6 @@
     <fieldPermissions>
         <editable>true</editable>
         <field>Nimbus_Order__c.Shipping_Carrier__c</field>
-        <readable>true</readable>
-    </fieldPermissions>
-    <fieldPermissions>
-        <editable>true</editable>
-        <field>Nimbus_Device_Registration__c.Serial_Number__c</field>
-        <readable>true</readable>
-    </fieldPermissions>
-    <fieldPermissions>
-        <editable>true</editable>
-        <field>Nimbus_Device_Registration__c.Product_Name__c</field>
-        <readable>true</readable>
-    </fieldPermissions>
-    <fieldPermissions>
-        <editable>true</editable>
-        <field>Nimbus_Device_Registration__c.Customer_Email__c</field>
-        <readable>true</readable>
-    </fieldPermissions>
-    <fieldPermissions>
-        <editable>true</editable>
-        <field>Nimbus_Device_Registration__c.Purchase_Date__c</field>
-        <readable>true</readable>
-    </fieldPermissions>
-    <fieldPermissions>
-        <editable>true</editable>
-        <field>Nimbus_Device_Registration__c.Warranty_End_Date__c</field>
         <readable>true</readable>
     </fieldPermissions>
     <fieldPermissions>
