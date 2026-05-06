@@ -1,0 +1,17 @@
+# Salesforce
+.sfdx/
+.sf/
+.localdevserver/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.sublime-*
+
+# Logs
+*.log
+npm-debug.log*

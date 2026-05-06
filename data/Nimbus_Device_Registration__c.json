@@ -1,0 +1,49 @@
+{
+    "records": [
+        {
+            "attributes": { "type": "Nimbus_Device_Registration__c", "referenceId": "DevReg1" },
+            "Serial_Number__c": "NIM-PAD-2024-00142",
+            "Product_Name__c": "NimbusPad Pro 12",
+            "Customer_Email__c": "sarah.chen@example.com",
+            "Purchase_Date__c": "2025-06-15",
+            "Warranty_End_Date__c": "2027-06-15",
+            "Coverage_Type__c": "Standard"
+        },
+        {
+            "attributes": { "type": "Nimbus_Device_Registration__c", "referenceId": "DevReg2" },
+            "Serial_Number__c": "NIM-PHN-2024-00891",
+            "Product_Name__c": "NimbusPhone 15",
+            "Customer_Email__c": "james.wilson@example.com",
+            "Purchase_Date__c": "2025-09-01",
+            "Warranty_End_Date__c": "2027-09-01",
+            "Coverage_Type__c": "Extended"
+        },
+        {
+            "attributes": { "type": "Nimbus_Device_Registration__c", "referenceId": "DevReg3" },
+            "Serial_Number__c": "NIM-WCH-2023-00337",
+            "Product_Name__c": "NimbusWatch Series 3",
+            "Customer_Email__c": "maria.garcia@example.com",
+            "Purchase_Date__c": "2023-11-20",
+            "Warranty_End_Date__c": "2025-11-20",
+            "Coverage_Type__c": "Standard"
+        },
+        {
+            "attributes": { "type": "Nimbus_Device_Registration__c", "referenceId": "DevReg4" },
+            "Serial_Number__c": "NIM-BK-2025-00056",
+            "Product_Name__c": "NimbusBook Air 14",
+            "Customer_Email__c": "sarah.chen@example.com",
+            "Purchase_Date__c": "2025-12-25",
+            "Warranty_End_Date__c": "2028-12-25",
+            "Coverage_Type__c": "Premium"
+        },
+        {
+            "attributes": { "type": "Nimbus_Device_Registration__c", "referenceId": "DevReg5" },
+            "Serial_Number__c": "NIM-PAD-2022-00999",
+            "Product_Name__c": "NimbusPad 10 (2022)",
+            "Customer_Email__c": "alex.kumar@example.com",
+            "Purchase_Date__c": "2022-03-10",
+            "Warranty_End_Date__c": "2024-03-10",
+            "Coverage_Type__c": "Standard"
+        }
+    ]
+}

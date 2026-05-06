@@ -1,0 +1,14 @@
+[
+    {
+        "sobject": "Nimbus_Order__c",
+        "saveRefs": true,
+        "resolveRefs": false,
+        "files": ["Nimbus_Order__c.json"]
+    },
+    {
+        "sobject": "Nimbus_Device_Registration__c",
+        "saveRefs": true,
+        "resolveRefs": false,
+        "files": ["Nimbus_Device_Registration__c.json"]
+    }
+]

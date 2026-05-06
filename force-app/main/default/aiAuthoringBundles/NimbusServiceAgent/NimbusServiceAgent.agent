@@ -1,0 +1,239 @@
+# NimbusServiceAgent - Nimbus Electronics Customer Service Agent
+# Companion code for "The Agentforce Handbook" by Abhi Rathna
+# This is the primary service agent that routes customer inquiries
+# to specialized subagents.
+
+config:
+   developer_name: "NimbusServiceAgent"
+   agent_label: "Nimbus Service Agent"
+   agent_type: "AgentforceServiceAgent"
+   description: "Nimbus Electronics customer service agent that handles order inquiries, warranty claims, delivery issues, and general support."
+
+variables:
+   customer_email: mutable string = ""
+      description: "The verified customer email address"
+
+   customer_name: mutable string = ""
+      description: "The customer's full name"
+
+   order_number: mutable string = ""
+      description: "The order number being discussed"
+
+   is_verified: mutable boolean = false
+      description: "Whether the customer's identity has been verified"
+
+system:
+   messages:
+      welcome: "Welcome to Nimbus Electronics support! I'm here to help with orders, warranties, delivery, and more. How can I assist you today?"
+      error: "I'm sorry, something went wrong. Let me try again or connect you with a human agent."
+
+   instructions: |
+      You are the Nimbus Electronics customer service agent. You help customers
+      with order status, warranty claims, delivery issues, account management,
+      and general product questions. Always be friendly, professional, and
+      solution-oriented.
+
+      Before handling sensitive requests (order changes, warranty claims),
+      verify the customer's identity by asking for their email and order number.
+
+start_agent agent_router:
+   description: "Route customer inquiries to the appropriate specialist subagent"
+
+   reasoning:
+      instructions:|
+         Analyze the customer's message and route to the best subagent:
+         - Order questions (status, tracking, cancellation) → order_inquiries
+         - Warranty claims or product defects → warranty_service
+         - Delivery problems (late, damaged, wrong address) → delivery_issues
+         - Account changes (update info, preferences) → account_management
+         - General product questions or FAQ → general_faq
+         - Unclear or ambiguous → ask for clarification before routing
+      actions:
+         route_orders: @utils.transition to @subagent.order_inquiries
+            description: "Handle order status, tracking, and cancellation requests"
+         route_warranty: @utils.transition to @subagent.warranty_service
+            description: "Handle warranty claims and product defect reports"
+         route_delivery: @utils.transition to @subagent.delivery_issues
+            description: "Handle delivery problems and shipping inquiries"
+         route_account: @utils.transition to @subagent.account_management
+            description: "Handle account updates and preference changes"
+         route_faq: @utils.transition to @subagent.general_faq
+            description: "Answer general product and company questions"
+
+subagent order_inquiries:
+   description: "Handles order status lookups, tracking, and cancellation requests"
+
+   actions:
+      get_order_status:
+         description: "Look up order status by order number and customer email"
+         inputs:
+            order_number: string
+               description: "The Nimbus order number (e.g., NIM-10001)"
+               is_required: True
+            customer_email: string
+               description: "The customer's email address for verification"
+               is_required: True
+         outputs:
+            status: string
+               description: "Current order status (Processing, Shipped, Delivered, Cancelled)"
+            tracking_number: string
+               description: "Shipping tracking number if the order has been shipped"
+            estimated_delivery: string
+               description: "Estimated delivery date"
+            order_details: object
+               description: "Full order details including items and amounts"
+               complex_data_type_name: "lightning__recordInfoType"
+         target: "flow://Nimbus_Get_Order_Status"
+
+      check_if_order_late:
+         description: "Check if an order is past its expected delivery date"
+         inputs:
+            order_number: string
+               description: "The order number to check"
+               is_required: True
+         outputs:
+            is_late: boolean
+               description: "Whether the order is past expected delivery"
+            days_late: number
+               description: "Number of days past expected delivery"
+         target: "flow://Nimbus_Check_If_Order_Late"
+
+   reasoning:
+      instructions:->
+         if not @variables.customer_email:
+            | Ask the customer for their email address and order number
+              so you can look up their order.
+
+         if @variables.customer_email and @variables.order_number:
+            run @actions.get_order_status
+               with order_number=@variables.order_number
+               with customer_email=@variables.customer_email
+               set @variables.order_number = @variables.order_number
+
+         | You are the order inquiries specialist. Help customers with:
+           - Order status lookups
+           - Tracking information
+           - Expected delivery dates
+           - Order cancellation requests
+
+           Always verify the customer's identity before sharing order details.
+           If an order appears late, proactively check using the late order check action.
+
+      actions:
+         lookup: @actions.get_order_status
+            with order_number=...
+            with customer_email=...
+         check_late: @actions.check_if_order_late
+            with order_number=...
+
+subagent warranty_service:
+   description: "Handles warranty claims, product defect reports, and replacement requests"
+
+   actions:
+      check_warranty:
+         description: "Check warranty status for a product by serial number"
+         inputs:
+            serial_number: string
+               description: "The product serial number"
+               is_required: True
+            customer_email: string
+               description: "Customer email for verification"
+               is_required: True
+         outputs:
+            is_under_warranty: boolean
+               description: "Whether the product is currently under warranty"
+            warranty_expiry: string
+               description: "Warranty expiration date"
+            coverage_type: string
+               description: "Type of warranty coverage (Standard, Extended, Premium)"
+            product_name: string
+               description: "Name of the registered product"
+         target: "apex://NimbusWarrantyCheckAction"
+
+   reasoning:
+      instructions:|
+         You are the warranty service specialist. Help customers with:
+         - Checking if their product is under warranty
+         - Filing warranty claims for defective products
+         - Understanding warranty coverage and limitations
+         - Initiating replacement or repair processes
+
+         Always ask for the product serial number (found on the device or in
+         their account) before checking warranty status. Be empathetic when
+         customers report product issues.
+
+      actions:
+         check: @actions.check_warranty
+            with serial_number=...
+            with customer_email=...
+
+subagent delivery_issues:
+   description: "Handles delivery problems including late, damaged, or missing packages"
+
+   actions:
+      get_shipping_status:
+         description: "Get detailed shipping and tracking information"
+         inputs:
+            order_number: string
+               description: "The order number to track"
+               is_required: True
+         outputs:
+            carrier: string
+               description: "Shipping carrier name"
+            tracking_number: string
+               description: "Carrier tracking number"
+            current_status: string
+               description: "Current shipping status"
+            estimated_arrival: string
+               description: "Estimated arrival date and time"
+         target: "flow://Nimbus_Get_Shipping_Status"
+
+   reasoning:
+      instructions:|
+         You are the delivery issues specialist. Help customers with:
+         - Late or delayed deliveries
+         - Damaged packages
+         - Wrong items received
+         - Address change requests for in-transit orders
+         - Missing package investigations
+
+         If a package is significantly late (3+ days), escalate to a human agent.
+         For damaged items, collect photos if possible and initiate a replacement.
+
+      actions:
+         track: @actions.get_shipping_status
+            with order_number=...
+
+subagent account_management:
+   description: "Handles account updates, preferences, and profile changes"
+
+   reasoning:
+      instructions:|
+         You are the account management specialist. Help customers with:
+         - Updating their email, phone, or shipping address
+         - Managing communication preferences
+         - Viewing their order history
+         - Updating payment methods
+
+         Always verify the customer's identity before making account changes.
+         Confirm all changes back to the customer before finalizing.
+
+subagent general_faq:
+   description: "Answers general questions about Nimbus Electronics products and policies"
+
+   reasoning:
+      instructions:|
+         You are the general FAQ specialist. Answer questions about:
+         - Nimbus product line (NimbusPad, NimbusPhone, NimbusWatch, NimbusBook)
+         - Return and refund policies (30-day return window, full refund for unopened)
+         - Shipping options and costs (Standard 5-7 days free, Express 2-3 days $9.99)
+         - Store locations and hours
+         - Product compatibility and specifications
+
+         Nimbus Electronics is a premium consumer electronics brand known for
+         innovative, reliable devices. Our flagship products include the
+         NimbusPad tablet, NimbusPhone smartphone, NimbusWatch smartwatch,
+         and NimbusBook laptop.
+
+         If the question requires specific account or order information,
+         transition back to the appropriate specialist subagent.

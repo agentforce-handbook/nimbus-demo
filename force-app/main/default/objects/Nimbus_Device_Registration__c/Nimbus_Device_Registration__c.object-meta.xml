@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <deploymentStatus>Deployed</deploymentStatus>
+    <description>Nimbus Electronics device registrations for warranty tracking. Links a product serial number to a customer for warranty verification.</description>
+    <label>Nimbus Device Registration</label>
+    <nameField>
+        <displayFormat>REG-{00000}</displayFormat>
+        <label>Registration Number</label>
+        <type>AutoNumber</type>
+    </nameField>
+    <pluralLabel>Nimbus Device Registrations</pluralLabel>
+    <sharingModel>ReadWrite</sharingModel>
+</CustomObject>

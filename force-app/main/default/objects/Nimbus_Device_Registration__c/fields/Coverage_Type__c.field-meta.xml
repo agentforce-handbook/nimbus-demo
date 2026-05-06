@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Coverage_Type__c</fullName>
+    <description>Warranty coverage tier</description>
+    <label>Coverage Type</label>
+    <required>false</required>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value><fullName>Standard</fullName><default>true</default><label>Standard</label></value>
+            <value><fullName>Extended</fullName><default>false</default><label>Extended</label></value>
+            <value><fullName>Premium</fullName><default>false</default><label>Premium</label></value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

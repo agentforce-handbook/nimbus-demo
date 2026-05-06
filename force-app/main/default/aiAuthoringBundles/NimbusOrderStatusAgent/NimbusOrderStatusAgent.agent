@@ -1,0 +1,132 @@
+# NimbusOrderStatusAgent - Standalone Order Status Agent
+# Companion code for "The Agentforce Handbook" Chapter 4
+# Demonstrates a focused single-purpose agent for order lookups
+
+config:
+   developer_name: "NimbusOrderStatusAgent"
+   agent_label: "Nimbus Order Status Agent"
+   agent_type: "AgentforceServiceAgent"
+   description: "A focused agent that handles order status lookups for Nimbus Electronics customers."
+
+variables:
+   order_number: mutable string = ""
+      description: "The customer's order number"
+
+   customer_email: mutable string = ""
+      description: "The customer's email for verification"
+
+   order_status: mutable string = ""
+      description: "Current status of the order"
+
+   tracking_number: mutable string = ""
+      description: "Shipping tracking number"
+
+   is_late: mutable boolean = false
+      description: "Whether the order is past expected delivery"
+
+system:
+   messages:
+      welcome: "Hi! I can help you check your Nimbus order status. What's your order number?"
+      error: "I had trouble looking up that order. Please double-check the order number and try again."
+
+   instructions: |
+      You are the Nimbus Electronics order status agent. Your sole purpose is
+      to help customers check the status of their orders. Be concise, friendly,
+      and proactive about flagging potential issues like late deliveries.
+
+start_agent agent_router:
+   description: "Welcome customers and route to order status lookup"
+
+   reasoning:
+      instructions:|
+         The customer wants to check an order. Route them to the order status
+         lookup subagent. If they ask about something other than orders,
+         let them know you specialize in order status and suggest they
+         contact general support for other questions.
+      actions:
+         check_order: @utils.transition to @subagent.order_status_lookup
+            description: "Look up order status"
+
+subagent order_status_lookup:
+   description: "Looks up order details and provides status information"
+
+   actions:
+      get_order:
+         description: "Retrieves order status by order number and customer email"
+         inputs:
+            order_number: string
+               description: "The Nimbus order number (e.g., NIM-10001)"
+               is_required: True
+            customer_email: string
+               description: "Customer email for identity verification"
+               is_required: True
+         outputs:
+            status: string
+               description: "Order status (Processing, Shipped, Delivered, Cancelled)"
+            tracking_number: string
+               description: "Shipping tracking number"
+            estimated_delivery: string
+               description: "Estimated delivery date"
+            order_details: object
+               description: "Full order record"
+               complex_data_type_name: "lightning__recordInfoType"
+         target: "flow://Nimbus_Get_Order_Status"
+
+      check_late:
+         description: "Check if order is past expected delivery date"
+         inputs:
+            order_number: string
+               description: "The order number to check"
+               is_required: True
+         outputs:
+            is_late: boolean
+               description: "Whether the order is late"
+            days_late: number
+               description: "Days past expected delivery"
+         target: "flow://Nimbus_Check_If_Order_Late"
+
+   reasoning:
+      instructions:->
+         if not @variables.customer_email:
+            | Please ask for the customer's email address and order number
+              to verify their identity and look up the order.
+
+         if @variables.customer_email and @variables.order_number:
+            run @actions.get_order
+               with order_number=@variables.order_number
+               with customer_email=@variables.customer_email
+               set @variables.order_status = @outputs.status
+               set @variables.tracking_number = @outputs.tracking_number
+
+         if @variables.order_status:
+            | Order {!@variables.order_number} status: {!@variables.order_status}
+
+         if @variables.order_status == "Shipped":
+            | The order has shipped. Tracking number: {!@variables.tracking_number}
+              Provide the tracking number and estimated delivery date.
+              Ask if they need anything else.
+
+         if @variables.order_status == "Processing":
+            | The order is being processed and hasn't shipped yet.
+              Let them know estimated shipping is 1-2 business days.
+
+         if @variables.order_status == "Delivered":
+            | The order shows as delivered. Confirm receipt with the customer.
+              If they didn't receive it, escalate to delivery issues.
+
+         if not @variables.order_status and @variables.order_number:
+            | No order found for {!@variables.order_number}. Ask the customer
+              to verify the order number. Nimbus order numbers start with NIM-.
+
+         | Always be helpful and proactive. If the order seems late, offer to
+           investigate further.
+
+      actions:
+         lookup: @actions.get_order
+            with order_number=...
+            with customer_email=...
+            set @variables.order_status = @outputs.status
+            set @variables.tracking_number = @outputs.tracking_number
+         late_check: @actions.check_late
+            with order_number=...
+            set @variables.is_late = @outputs.is_late

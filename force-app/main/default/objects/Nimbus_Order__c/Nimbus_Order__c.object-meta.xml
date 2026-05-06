@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <deploymentStatus>Deployed</deploymentStatus>
+    <description>Nimbus Electronics customer orders. Used by Agentforce agents to look up order status, tracking, and delivery information.</description>
+    <label>Nimbus Order</label>
+    <nameField>
+        <displayFormat>NIM-{00000}</displayFormat>
+        <label>Order Number</label>
+        <type>AutoNumber</type>
+    </nameField>
+    <pluralLabel>Nimbus Orders</pluralLabel>
+    <sharingModel>ReadWrite</sharingModel>
+</CustomObject>

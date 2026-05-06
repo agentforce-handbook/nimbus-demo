@@ -1,0 +1,54 @@
+{
+    "records": [
+        {
+            "attributes": { "type": "Nimbus_Order__c", "referenceId": "NimbusOrder1" },
+            "Status__c": "Shipped",
+            "Customer_Email__c": "sarah.chen@example.com",
+            "Tracking_Number__c": "1Z999AA10123456784",
+            "Estimated_Delivery__c": "2026-05-10",
+            "Product_Name__c": "NimbusPad Pro 12",
+            "Order_Amount__c": 899.99,
+            "Shipping_Carrier__c": "UPS"
+        },
+        {
+            "attributes": { "type": "Nimbus_Order__c", "referenceId": "NimbusOrder2" },
+            "Status__c": "Processing",
+            "Customer_Email__c": "james.wilson@example.com",
+            "Tracking_Number__c": "",
+            "Estimated_Delivery__c": "2026-05-15",
+            "Product_Name__c": "NimbusPhone 15",
+            "Order_Amount__c": 1199.99,
+            "Shipping_Carrier__c": ""
+        },
+        {
+            "attributes": { "type": "Nimbus_Order__c", "referenceId": "NimbusOrder3" },
+            "Status__c": "Delivered",
+            "Customer_Email__c": "maria.garcia@example.com",
+            "Tracking_Number__c": "9400111899223033005801",
+            "Estimated_Delivery__c": "2026-04-28",
+            "Product_Name__c": "NimbusWatch Ultra",
+            "Order_Amount__c": 449.99,
+            "Shipping_Carrier__c": "USPS"
+        },
+        {
+            "attributes": { "type": "Nimbus_Order__c", "referenceId": "NimbusOrder4" },
+            "Status__c": "Shipped",
+            "Customer_Email__c": "sarah.chen@example.com",
+            "Tracking_Number__c": "794644790132",
+            "Estimated_Delivery__c": "2026-04-20",
+            "Product_Name__c": "NimbusBook Air 14",
+            "Order_Amount__c": 1499.99,
+            "Shipping_Carrier__c": "FedEx"
+        },
+        {
+            "attributes": { "type": "Nimbus_Order__c", "referenceId": "NimbusOrder5" },
+            "Status__c": "Cancelled",
+            "Customer_Email__c": "alex.kumar@example.com",
+            "Tracking_Number__c": "",
+            "Estimated_Delivery__c": null,
+            "Product_Name__c": "NimbusPad Mini",
+            "Order_Amount__c": 599.99,
+            "Shipping_Carrier__c": ""
+        }
+    ]
+}
