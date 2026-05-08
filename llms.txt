@@ -1,0 +1,152 @@
+# The Agentforce Handbook
+
+> A practical guide to building AI agents on Salesforce Agentforce. This file distills the handbook's methodology for AI consumption — use it to build Agentforce agents correctly.
+
+## Companion Skills
+
+- [/agentforce:design-agent](.claude/skills/design-agent/SKILL.md): Generate a complete agent design from a business process description
+- [/agentforce:build-apex-action](.claude/skills/build-apex-action/SKILL.md): Generate production-ready Apex invocable actions with tests
+- [/agentforce:audit-agent](.claude/skills/audit-agent/SKILL.md): Audit agent metadata against handbook best practices
+- [/agentforce:build-custom-connection](.claude/skills/build-custom-connection/SKILL.md): Build custom connection metadata for Agentforce
+- [Agent Design Schema](agent-contract/agent-design-v1.schema.json): Shared data contract for agent designs
+- [Validation Rules](validation-rules.json): Best practices as executable rules
+
+## Agent Architecture
+
+Agentforce agents use a subagent routing model. A top-level router analyzes user intent and transitions to specialized subagents. Each subagent owns one area of responsibility.
+
+Key components:
+- **Agent Script** — Declarative configuration defining agent behavior (config, variables, system messages, routing, subagents)
+- **Subagents** — Specialized handlers for distinct topic areas. Each has its own instructions, actions, and escalation triggers.
+- **Actions** — Invocable operations (Apex classes, Flows, or external services) that subagents can execute
+- **Classification descriptions** — Short text on each subagent that the router uses for intent matching. Must be specific and mutually exclusive.
+
+## The Translation Method (Ch5.1)
+
+Converting a business process into an agent design:
+
+1. **Identify the business process** — What does the agent handle? Describe end-to-end.
+2. **Map the actors** — Who interacts with the agent? Who does the agent call downstream?
+3. **Identify systems and data** — What Salesforce objects, external APIs, or knowledge bases are needed?
+4. **Define failure modes** — When should the agent escalate? What are the edge cases?
+5. **Decompose into subagents** — Each distinct responsibility becomes a subagent.
+6. **Write classification descriptions** — Specific, mutually exclusive descriptions for routing.
+7. **Write instructions per subagent** — Goal-first, under 1000 words, with "if" conditions and explicit negatives.
+8. **Define actions per subagent** — Max 6 per subagent. Each with typed, described inputs and outputs.
+9. **Define escalation triggers** — Every subagent must specify when to hand off to a human.
+
+## Instruction Writing Rules (Ch5.2)
+
+When writing subagent instructions:
+
+- **Lead with the goal**, not the process. Say what to achieve, then how.
+- **Use "if" conditions**, not "always" directives. "If the customer asks about returns, explain the 30-day policy" is better than "Always explain the return policy."
+- **Keep under 1000 words.** If you're over, the subagent is doing too much — split it.
+- **Specify negatives.** "Do not approve refunds over $500 without escalation" is critical context the agent needs.
+- **Include escalation triggers** in the instructions. "If the customer mentions legal action, escalate immediately."
+
+## Action Design Rules (Ch7)
+
+When building actions for agents:
+
+- **Maximum 6 actions per subagent.** More than 6 means the subagent should be split.
+- **Every `@InvocableVariable` must have a `description`.** The agent reads these to understand what to pass. Empty descriptions cause the agent to guess — and guess wrong.
+- **Always include an `errorMessage` output.** Even if you think it can't fail. Structured error responses, never thrown exceptions.
+- **Use `with sharing`.** FLS and CRUD enforcement is non-negotiable.
+- **Bulk-safe patterns.** Process the full `List<Request>`, not just `requests[0]`.
+- **Named Credentials for external APIs.** Never hardcode endpoints or auth tokens.
+
+### Apex Action Pattern
+
+```apex
+public with sharing class MyAction {
+    public class ActionRequest {
+        @InvocableVariable(required=true description='What this input is')
+        public String inputField;
+    }
+
+    public class ActionResponse {
+        @InvocableVariable(description='What this output contains')
+        public String outputField;
+
+        @InvocableVariable(description='Error message if the action failed')
+        public String errorMessage;
+    }
+
+    @InvocableMethod(
+        label='Action Label'
+        description='What this action does'
+        category='Category'
+    )
+    public static List<ActionResponse> execute(List<ActionRequest> requests) {
+        List<ActionResponse> responses = new List<ActionResponse>();
+        for (ActionRequest req : requests) {
+            ActionResponse resp = new ActionResponse();
+            try {
+                // Implementation
+            } catch (Exception e) {
+                resp.errorMessage = 'Error: ' + e.getMessage();
+            }
+            responses.add(resp);
+        }
+        return responses;
+    }
+}
+```
+
+## Classification Description Rules (Ch5.2)
+
+- Describe WHAT the subagent handles, not HOW it handles it.
+- Must be mutually exclusive — if a user query could match two subagents, the descriptions are too broad.
+- Be specific: "Handles billing inquiries including invoice questions, payment issues, and refund requests" is good. "Handles customer issues" is too broad.
+- Minimum 10 words. Short descriptions lead to misrouting.
+
+## When to Use Flow vs Apex vs External Service (Ch7)
+
+| Use Case | Choose | Why |
+|----------|--------|-----|
+| Simple data lookup (no logic) | Flow | Declarative, maintainable, no code |
+| Complex business logic | Apex | Full programming control |
+| Multi-object DML with conditions | Apex | Transaction control |
+| External REST/SOAP call | Apex with Named Credential | HTTP callout support |
+| Simple field update | Flow | Overkill for Apex |
+| Needs unit testing | Apex | Flow test coverage is limited |
+
+## Agent Anti-Patterns
+
+These patterns cause agents to fail. The audit-agent skill checks for all of them.
+
+| Anti-Pattern | Problem | Fix | Chapter |
+|-------------|---------|-----|---------|
+| Instructions over 1000 words | Agent gets confused, ignores later instructions | Split the subagent | 5.2 |
+| More than 6 actions per subagent | Agent can't reliably choose the right action | Split the subagent | 5.3 |
+| Missing action descriptions | Agent guesses what to pass, gets it wrong | Add clear `@InvocableVariable` descriptions | 7 |
+| Vague classification descriptions | Router sends queries to wrong subagent | Make descriptions specific and mutually exclusive | 5.2 |
+| No escalation triggers | Agent never hands off to humans | Define explicit conditions for human handoff | 4 |
+| "Always" instead of "if" | Agent follows rules rigidly even when inappropriate | Use conditional instructions | 5.2 |
+| Thrown exceptions | Agent crashes instead of handling errors | Use structured errorMessage output | 7 |
+| `without sharing` | Security bypass, FLS not enforced | Use `with sharing` | 7 |
+| Hardcoded credentials | Security risk, breaks across environments | Use Named Credentials | 7 |
+
+## Testing Agents (Ch5.9)
+
+Test suites should cover:
+- **Happy path** — Valid input produces correct output
+- **Edge cases** — Boundary conditions (e.g., 30-day return window on day 30)
+- **Cross-topic transitions** — User switches topics mid-conversation
+- **Negative tests** — Out-of-scope queries handled gracefully
+- **Escalation** — Triggers actually fire when conditions are met
+
+## Multi-Agent Architecture (Ch9)
+
+For complex systems with multiple agents:
+- **Bidirectional navigation** — Agents can transition to each other, not just one-way
+- **Shared variables** — Use conversation-scoped variables for state across subagents
+- **Clear routing** — Each agent's scope must be distinct
+- **Escalation chains** — Define the path from agent → specialist agent → human
+
+## Optional
+
+- [NimbusServiceAgent Example](force-app/main/default/aiAuthoringBundles/NimbusServiceAgent/NimbusServiceAgent.agent): Full working agent with 5 subagents
+- [NimbusWarrantyCheckAction](force-app/main/default/classes/NimbusWarrantyCheckAction.cls): Reference Apex action implementation
+- [Sample Data](data/): Test data for Orders and Device Registrations
