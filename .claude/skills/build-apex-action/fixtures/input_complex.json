@@ -1,0 +1,48 @@
+{
+  "description": "External API action with Named Credential and complex response mapping",
+  "answers": {
+    "what_it_does": "Check real-time inventory availability for a product SKU across multiple warehouse locations. Returns quantity available, nearest warehouse, and estimated ship date.",
+    "inputs": [
+      {
+        "name": "productSku",
+        "type": "String",
+        "required": true,
+        "description": "The product SKU to check inventory for"
+      },
+      {
+        "name": "customerZipCode",
+        "type": "String",
+        "required": false,
+        "description": "Customer zip code to find the nearest warehouse"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "quantityAvailable",
+        "type": "Integer",
+        "description": "Total quantity available across all warehouses"
+      },
+      {
+        "name": "nearestWarehouse",
+        "type": "String",
+        "description": "Name of the nearest warehouse with stock"
+      },
+      {
+        "name": "estimatedShipDate",
+        "type": "String",
+        "description": "Estimated ship date in YYYY-MM-DD format"
+      },
+      {
+        "name": "inStock",
+        "type": "Boolean",
+        "description": "Whether the product is currently in stock"
+      },
+      {
+        "name": "errorMessage",
+        "type": "String",
+        "description": "Error message if the inventory check failed"
+      }
+    ],
+    "data_source": "External REST API via Named Credential 'WarehouseAPI'. GET /api/v1/inventory/{sku}?zip={zipCode}. Returns JSON with warehouse locations array."
+  }
+}

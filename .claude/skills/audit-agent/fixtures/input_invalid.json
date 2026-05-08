@@ -1,0 +1,5 @@
+{
+  "description": "No valid input — should prompt the user for a path",
+  "source": "none",
+  "expected_behavior": "The skill should check the current directory for agent-design.json or .agent files. If nothing is found, it should ask the user for a path. It should NOT produce an empty or meaningless audit report."
+}

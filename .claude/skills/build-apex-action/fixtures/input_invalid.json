@@ -1,0 +1,10 @@
+{
+  "description": "Intentionally vague input that should trigger clarifying questions",
+  "answers": {
+    "what_it_does": "Get some data",
+    "inputs": [],
+    "outputs": [],
+    "data_source": ""
+  },
+  "expected_behavior": "The skill should ask clarifying questions: What data? From where? What object or API? What does the agent need to pass in? 'Get some data' is too vague to generate a correct action."
+}

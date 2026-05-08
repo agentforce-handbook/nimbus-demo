@@ -1,0 +1,122 @@
+{
+  "$schema": "agentforce-handbook/validation-rules-v1",
+  "version": "1.0",
+  "handbookEdition": "1st edition",
+  "evaluator": "js-sandbox",
+  "rules": [
+    {
+      "id": "instruction-length",
+      "rule": "Topic/subagent instructions must be under 1000 words",
+      "chapter": "5.2",
+      "severity": "error",
+      "scope": "subagent",
+      "check": "subagent.instructionWordCount <= 1000 || subagent.instructions.split(/\\s+/).length <= 1000"
+    },
+    {
+      "id": "instruction-goal-first",
+      "rule": "Instructions should lead with the goal, not the process",
+      "chapter": "5.2",
+      "severity": "warning",
+      "scope": "subagent",
+      "check": "!subagent.instructions.match(/^(First|Step 1|1\\.|Begin by)/i)",
+      "note": "Heuristic: flags instructions that start with process-oriented language"
+    },
+    {
+      "id": "instruction-no-always",
+      "rule": "Prefer 'if' conditions over 'always' directives",
+      "chapter": "5.2",
+      "severity": "warning",
+      "scope": "subagent",
+      "check": "(subagent.instructions.match(/\\balways\\b/gi) || []).length <= 2",
+      "note": "Allows up to 2 uses of 'always' before flagging"
+    },
+    {
+      "id": "instruction-has-negatives",
+      "rule": "Instructions should specify what the agent should NOT do",
+      "chapter": "5.2",
+      "severity": "warning",
+      "scope": "subagent",
+      "check": "subagent.instructions.match(/\\b(do not|don't|never|should not|must not)\\b/i) !== null"
+    },
+    {
+      "id": "action-count",
+      "rule": "Maximum 6 actions per topic/subagent",
+      "chapter": "5.3",
+      "severity": "warning",
+      "scope": "subagent",
+      "check": "(subagent.actions || []).length <= 6"
+    },
+    {
+      "id": "action-description",
+      "rule": "Every action must have a non-empty description",
+      "chapter": "7",
+      "severity": "error",
+      "scope": "action",
+      "check": "action.description && action.description.trim().length > 0"
+    },
+    {
+      "id": "input-description",
+      "rule": "Every action input must have a non-empty description",
+      "chapter": "7",
+      "severity": "error",
+      "scope": "input",
+      "check": "input.description && input.description.trim().length > 0"
+    },
+    {
+      "id": "output-description",
+      "rule": "Every action output must have a non-empty description",
+      "chapter": "7",
+      "severity": "error",
+      "scope": "output",
+      "check": "output.description && output.description.trim().length > 0"
+    },
+    {
+      "id": "error-output",
+      "rule": "Every action should have an error message output",
+      "chapter": "7",
+      "severity": "warning",
+      "scope": "action",
+      "check": "(action.outputs || []).some(o => /error/i.test(o.name) || /error/i.test(o.description))"
+    },
+    {
+      "id": "action-target",
+      "rule": "Action targets should not be empty or TODO in production",
+      "chapter": "7",
+      "severity": "warning",
+      "scope": "action",
+      "check": "action.target && action.target !== 'TODO'"
+    },
+    {
+      "id": "classification-specificity",
+      "rule": "Classification descriptions must be specific (>10 words)",
+      "chapter": "5.2",
+      "severity": "warning",
+      "scope": "subagent",
+      "check": "subagent.classificationDescription.split(/\\s+/).length > 10"
+    },
+    {
+      "id": "escalation-defined",
+      "rule": "Every subagent must define escalation triggers",
+      "chapter": "4",
+      "severity": "error",
+      "scope": "subagent",
+      "check": "Array.isArray(subagent.escalationTriggers) && subagent.escalationTriggers.length > 0"
+    },
+    {
+      "id": "agent-has-description",
+      "rule": "Agent must have a non-empty description",
+      "chapter": "4",
+      "severity": "error",
+      "scope": "agent",
+      "check": "agent.description && agent.description.trim().length > 0"
+    },
+    {
+      "id": "subagent-has-description",
+      "rule": "Every subagent must have a classification description",
+      "chapter": "5.2",
+      "severity": "error",
+      "scope": "subagent",
+      "check": "subagent.classificationDescription && subagent.classificationDescription.trim().length > 0"
+    }
+  ]
+}

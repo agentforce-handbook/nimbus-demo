@@ -1,0 +1,53 @@
+{
+  "description": "A well-formed agent design that should pass all checks",
+  "source": "agent-design.json",
+  "agent_design": {
+    "$schema": "agentforce-handbook/agent-design-v1",
+    "agent": {
+      "name": "SampleServiceAgent",
+      "label": "Sample Service Agent",
+      "type": "AgentforceServiceAgent",
+      "description": "A sample customer service agent for testing the audit skill.",
+      "variables": [
+        {
+          "name": "customer_email",
+          "type": "string",
+          "mutable": true,
+          "description": "The verified customer email address"
+        }
+      ],
+      "subagents": [
+        {
+          "name": "billing_support",
+          "classificationDescription": "Handles billing inquiries including invoice questions, payment issues, and refund requests",
+          "instructions": "You are the billing support specialist. Help customers with invoice questions, payment issues, and refund requests.\n\nIf the customer asks about a specific invoice, look it up by invoice number or customer email.\n\nIf the customer wants a refund, check their eligibility based on the 30-day return policy.\n\nIf the refund amount exceeds $500, escalate to a human agent.\n\nDo not process refunds for orders older than 90 days.",
+          "instructionWordCount": 68,
+          "actions": [
+            {
+              "name": "lookup_invoice",
+              "type": "apex",
+              "description": "Look up an invoice by invoice number and customer email",
+              "target": "apex://InvoiceLookupAction",
+              "inputs": [
+                { "name": "invoiceNumber", "type": "string", "description": "The invoice number to look up", "required": true },
+                { "name": "customerEmail", "type": "string", "description": "Customer email for verification", "required": true }
+              ],
+              "outputs": [
+                { "name": "amount", "type": "number", "description": "Invoice amount in USD" },
+                { "name": "status", "type": "string", "description": "Invoice status (Paid, Pending, Overdue)" },
+                { "name": "errorMessage", "type": "string", "description": "Error message if lookup failed" }
+              ]
+            }
+          ],
+          "escalationTriggers": ["Refund amount exceeds $500", "Customer requests to speak with a manager"]
+        }
+      ]
+    },
+    "metadata": {
+      "generatedBy": "/agentforce:design-agent",
+      "handbookVersion": "1st edition",
+      "timestamp": "2026-05-08T12:00:00Z"
+    }
+  },
+  "expected_score": "A"
+}

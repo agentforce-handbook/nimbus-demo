@@ -1,0 +1,54 @@
+{
+  "description": "An agent design with several violations that should produce FAIL and WARN results",
+  "source": "agent-design.json",
+  "agent_design": {
+    "$schema": "agentforce-handbook/agent-design-v1",
+    "agent": {
+      "name": "BadExampleAgent",
+      "label": "Bad Example Agent",
+      "type": "AgentforceServiceAgent",
+      "description": "An intentionally flawed agent for testing audit detection.",
+      "subagents": [
+        {
+          "name": "overloaded_support",
+          "classificationDescription": "Handles everything",
+          "instructions": "Always greet the customer first. Always ask for their email. Always confirm their identity. Always check order status before anything else. Always be polite. Always use formal language. Handle orders, returns, billing, shipping, complaints, general questions, product info, and account changes. You must always respond within the guidelines. You should always double-check the customer's information before proceeding with any action.",
+          "instructionWordCount": 63,
+          "actions": [
+            { "name": "action1", "type": "apex", "description": "Do thing 1", "target": "TODO", "inputs": [], "outputs": [] },
+            { "name": "action2", "type": "apex", "description": "Do thing 2", "target": "TODO", "inputs": [], "outputs": [] },
+            { "name": "action3", "type": "apex", "description": "", "target": "TODO", "inputs": [], "outputs": [] },
+            { "name": "action4", "type": "flow", "description": "Do thing 4", "target": "TODO", "inputs": [{ "name": "id", "type": "string", "description": "", "required": true }], "outputs": [] },
+            { "name": "action5", "type": "apex", "description": "Do thing 5", "target": "TODO", "inputs": [], "outputs": [] },
+            { "name": "action6", "type": "apex", "description": "Do thing 6", "target": "TODO", "inputs": [], "outputs": [] },
+            { "name": "action7", "type": "apex", "description": "Do thing 7", "target": "TODO", "inputs": [], "outputs": [] }
+          ],
+          "escalationTriggers": []
+        },
+        {
+          "name": "also_handles_everything",
+          "classificationDescription": "Handles all customer issues and requests",
+          "instructions": "Help customers with anything they need.",
+          "instructionWordCount": 7,
+          "actions": [],
+          "escalationTriggers": ["Customer is upset"]
+        }
+      ]
+    },
+    "metadata": {
+      "generatedBy": "manual",
+      "handbookVersion": "1st edition",
+      "timestamp": "2026-05-08T12:00:00Z"
+    }
+  },
+  "expected_failures": [
+    "action-count (overloaded_support has 7 actions)",
+    "action-description (action3 has empty description)",
+    "input-description (action4.id has empty description)",
+    "escalation-defined (overloaded_support has empty escalation triggers)",
+    "classification-specificity (both descriptions are too vague)",
+    "classification-overlap (both subagents describe handling everything)",
+    "instruction-no-always (overloaded_support uses 'always' repeatedly)"
+  ],
+  "expected_score": "F"
+}

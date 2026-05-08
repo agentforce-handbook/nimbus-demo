@@ -1,0 +1,32 @@
+{
+  "description": "Simple SOQL-based lookup action",
+  "answers": {
+    "what_it_does": "Look up a customer's account tier by email address. Returns their tier level (Bronze, Silver, Gold, Platinum) and account ID.",
+    "inputs": [
+      {
+        "name": "customerEmail",
+        "type": "String",
+        "required": true,
+        "description": "The customer's email address to look up"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "accountTier",
+        "type": "String",
+        "description": "The customer's account tier (Bronze, Silver, Gold, Platinum)"
+      },
+      {
+        "name": "accountId",
+        "type": "String",
+        "description": "The Salesforce Account ID"
+      },
+      {
+        "name": "errorMessage",
+        "type": "String",
+        "description": "Error message if the lookup failed"
+      }
+    ],
+    "data_source": "SOQL query on Account object, matching on email field on related Contact"
+  }
+}
