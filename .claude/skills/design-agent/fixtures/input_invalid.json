@@ -1,0 +1,10 @@
+{
+  "description": "Intentionally vague input that should trigger clarifying questions",
+  "answers": {
+    "business_process": "Help customers",
+    "actors": "",
+    "systems": "",
+    "failure_modes": ""
+  },
+  "expected_behavior": "The skill should ask clarifying follow-up questions rather than generating a vague or incorrect agent design. 'Help customers' is too broad — the skill must ask what kind of help, what industry, what a typical interaction looks like."
+}

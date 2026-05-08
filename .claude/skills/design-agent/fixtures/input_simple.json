@@ -1,0 +1,9 @@
+{
+  "description": "A simple single-purpose agent for testing",
+  "answers": {
+    "business_process": "Customer support for a small SaaS company. Customers ask about billing, account access, and feature requests.",
+    "actors": "Customers via web chat. Support team reviews escalated cases in Salesforce.",
+    "systems": "Case object, Account object, Knowledge articles for FAQ.",
+    "failure_modes": "Escalate to human if customer mentions cancellation or legal. If knowledge search returns no results, apologize and create a case."
+  }
+}

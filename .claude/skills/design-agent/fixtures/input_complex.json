@@ -1,0 +1,9 @@
+{
+  "description": "A multi-subagent agent with external integrations and complex routing",
+  "answers": {
+    "business_process": "Insurance claims processing. Policyholders file new claims, check claim status, upload supporting documents, and dispute claim decisions. Adjusters review and approve claims internally.",
+    "actors": "Policyholders via customer portal. Claims adjusters via Service Console. External: body shop partners via API for auto claims.",
+    "systems": "Claim__c (custom object), Policy__c (custom object), Contact, ContentVersion for document uploads, External REST API for body shop partner status checks, Knowledge articles for policy explanations.",
+    "failure_modes": "Escalate to human if claim amount exceeds $50,000. Escalate if policyholder disputes a decision. If external API is down, inform user and create a follow-up task. Never approve or deny a claim — only adjusters can do that. If policy is expired, explain clearly and offer renewal options."
+  }
+}
