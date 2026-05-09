@@ -44,7 +44,10 @@ public with sharing class NimbusWarrantyCheckAction {
             WarrantyResponse resp = new WarrantyResponse();
 
             try {
-                // Look up device registration by serial number
+                // Look up device registration by serial number.
+                // WITH USER_MODE enforces field-level security and object CRUD
+                // for the running user. `with sharing` alone only enforces
+                // record-level sharing rules.
                 List<Nimbus_Device_Registration__c> registrations = [
                     SELECT Id, Serial_Number__c, Product_Name__c,
                            Purchase_Date__c, Warranty_End_Date__c,
@@ -52,6 +55,7 @@ public with sharing class NimbusWarrantyCheckAction {
                     FROM Nimbus_Device_Registration__c
                     WHERE Serial_Number__c = :req.serialNumber
                     AND Customer_Email__c = :req.customerEmail
+                    WITH USER_MODE
                     LIMIT 1
                 ];
 
