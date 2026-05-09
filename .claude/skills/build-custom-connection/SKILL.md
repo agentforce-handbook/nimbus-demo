@@ -1,3 +1,10 @@
+---
+name: build-custom-connection
+description: Build custom connection metadata for Agentforce
+metadata:
+  user_invocable: true
+---
+
 # Build a Custom Connection for Agentforce
 
 > Originally from: [agent-connections-tools/custom-connections-skill](https://github.com/agent-connections-tools/custom-connections-skill)

@@ -68,8 +68,8 @@ for CLS in $(find "$OUTPUT_DIR/force-app" -name "*.cls" ! -name "*Test.cls" 2>/d
     fi
 
     # Check for @InvocableVariable with descriptions
-    INV_VARS=$(grep -c "@InvocableVariable" "$CLS" 2>/dev/null || echo 0)
-    INV_WITH_DESC=$(grep -c "@InvocableVariable.*description=" "$CLS" 2>/dev/null || echo 0)
+    INV_VARS=$(grep -c "@InvocableVariable" "$CLS" 2>/dev/null | tr -d '[:space:]' || echo 0)
+    INV_WITH_DESC=$(grep -c "@InvocableVariable.*description=" "$CLS" 2>/dev/null | tr -d '[:space:]' || echo 0)
     if [ "$INV_VARS" -eq "$INV_WITH_DESC" ] && [ "$INV_VARS" -gt 0 ]; then
         echo "    [PASS] All $INV_VARS @InvocableVariable have descriptions"
     elif [ "$INV_VARS" -gt 0 ]; then
@@ -81,7 +81,7 @@ for CLS in $(find "$OUTPUT_DIR/force-app" -name "*.cls" ! -name "*Test.cls" 2>/d
     if grep -q "with sharing" "$CLS"; then
         echo "    [PASS] Uses 'with sharing'"
     else
-        echo "    [FAIL] Missing 'with sharing' — FLS not enforced"
+        echo "    [FAIL] Missing 'with sharing' — sharing rules not enforced"
         ERRORS=$((ERRORS + 1))
     fi
 
@@ -101,7 +101,7 @@ for CLS in $(find "$OUTPUT_DIR/force-app" -name "*.cls" ! -name "*Test.cls" 2>/d
     fi
 
     # Check no thrown exceptions reach caller
-    THROWS=$(grep -c "throw " "$CLS" 2>/dev/null || echo 0)
+    THROWS=$(grep -c "throw " "$CLS" 2>/dev/null | tr -d '[:space:]' || echo 0)
     if [ "$THROWS" -eq 0 ]; then
         echo "    [PASS] No thrown exceptions"
     else
@@ -116,14 +116,14 @@ echo "--- Test class validation ---"
 for TEST in $(find "$OUTPUT_DIR/force-app" -name "*Test.cls" 2>/dev/null); do
     echo "  Checking: $(basename $TEST)"
 
-    if grep -q "@IsTest" "$TEST"; then
+    if grep -qi "@IsTest" "$TEST"; then
         echo "    [PASS] Has @IsTest annotation"
     else
         echo "    [FAIL] Missing @IsTest"
         ERRORS=$((ERRORS + 1))
     fi
 
-    TEST_METHODS=$(grep -c "@IsTest" "$TEST" 2>/dev/null || echo 0)
+    TEST_METHODS=$(grep -ci "@IsTest" "$TEST" 2>/dev/null | tr -d '[:space:]' || echo 0)
     # Subtract 1 for the class-level annotation
     TEST_METHODS=$((TEST_METHODS - 1))
     if [ "$TEST_METHODS" -ge 2 ]; then

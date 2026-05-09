@@ -32,7 +32,7 @@ if [ -f "$OUTPUT_DIR/audit-report.json" ]; then
         ERRORS=$((ERRORS + 1))
     fi
 
-    python3 << 'PYEOF'
+    python3 - "$OUTPUT_DIR/audit-report.json" << 'PYEOF'
 import json, sys
 
 with open(sys.argv[1]) as f:
@@ -53,7 +53,7 @@ for field in ["total", "passed", "failed", "warnings", "score"]:
 
 # Check score is valid
 score = summary.get("score", "")
-if score not in ["A", "B", "C", "D", "F"]:
+if score not in ["A", "B", "C", "D", "F", "a", "b", "c", "d", "f"]:
     errors.append(f"Invalid score: {score} (must be A-F)")
 
 # Check results array
@@ -69,18 +69,18 @@ for i, result in enumerate(results):
 
     # Check status is valid
     status = result.get("status", "")
-    if status not in ["PASS", "FAIL", "WARN", "UNKNOWN"]:
+    if status not in ["pass", "fail", "warn", "unknown"]:
         errors.append(f"{prefix} invalid status: {status}")
 
     # Check severity is valid
     severity = result.get("severity", "")
-    if severity not in ["ERROR", "WARNING"]:
+    if severity not in ["error", "warning"]:
         errors.append(f"{prefix} invalid severity: {severity}")
 
 # Verify counts match
-actual_pass = sum(1 for r in results if r.get("status") == "PASS")
-actual_fail = sum(1 for r in results if r.get("status") == "FAIL")
-actual_warn = sum(1 for r in results if r.get("status") == "WARN")
+actual_pass = sum(1 for r in results if r.get("status") == "pass")
+actual_fail = sum(1 for r in results if r.get("status") == "fail")
+actual_warn = sum(1 for r in results if r.get("status") == "warn")
 
 if summary.get("passed") != actual_pass:
     errors.append(f"Summary says {summary.get('passed')} passed but found {actual_pass}")
@@ -98,7 +98,7 @@ else:
     print(f"  [PASS] All required fields present and valid")
     print(f"  [INFO] Score: {score} | {actual_pass} passed, {actual_fail} failed, {actual_warn} warnings")
 
-PYEOF "$OUTPUT_DIR/audit-report.json"
+PYEOF
 fi
 
 # Validate HTML report

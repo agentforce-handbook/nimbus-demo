@@ -52,7 +52,7 @@ When building actions for agents:
 - **Maximum 6 actions per subagent.** More than 6 means the subagent should be split.
 - **Every `@InvocableVariable` must have a `description`.** The agent reads these to understand what to pass. Empty descriptions cause the agent to guess — and guess wrong.
 - **Always include an `errorMessage` output.** Even if you think it can't fail. Structured error responses, never thrown exceptions.
-- **Use `with sharing`.** FLS and CRUD enforcement is non-negotiable.
+- **Use `with sharing` and enforce FLS/CRUD.** `with sharing` enforces sharing rules. For FLS/CRUD, use `WITH USER_MODE` in SOQL/DML or `Security.stripInaccessible()`.
 - **Bulk-safe patterns.** Process the full `List<Request>`, not just `requests[0]`.
 - **Named Credentials for external APIs.** Never hardcode endpoints or auth tokens.
 
@@ -125,7 +125,7 @@ These patterns cause agents to fail. The audit-agent skill checks for all of the
 | No escalation triggers | Agent never hands off to humans | Define explicit conditions for human handoff | 4 |
 | "Always" instead of "if" | Agent follows rules rigidly even when inappropriate | Use conditional instructions | 5.2 |
 | Thrown exceptions | Agent crashes instead of handling errors | Use structured errorMessage output | 7 |
-| `without sharing` | Security bypass, FLS not enforced | Use `with sharing` | 7 |
+| `without sharing` | Sharing rules bypassed | Use `with sharing` + `WITH USER_MODE` for FLS/CRUD | 7 |
 | Hardcoded credentials | Security risk, breaks across environments | Use Named Credentials | 7 |
 
 ## Testing Agents (Ch5.9)

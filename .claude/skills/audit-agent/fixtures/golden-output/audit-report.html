@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Audit: SampleServiceAgent</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .score { font-size: 3em; font-weight: bold; text-align: center; padding: 20px; border-radius: 8px; }
+        .score-A { background: #d4edda; color: #155724; }
+        .result { padding: 8px 12px; margin: 4px 0; border-radius: 4px; }
+        .pass { background: #d4edda; }
+        .fail { background: #f8d7da; }
+        .warn { background: #fff3cd; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 8px 12px; border: 1px solid #dee2e6; text-align: left; }
+        th { background: #f8f9fa; }
+    </style>
+</head>
+<body>
+    <h1>Agent Audit: SampleServiceAgent</h1>
+    <div class="score score-A">Score: A</div>
+    <p><strong>Audited:</strong> 2026-05-08T12:00:00Z | <strong>Source:</strong> agent-design.json</p>
+    <table>
+        <tr><th>Status</th><th>Count</th></tr>
+        <tr><td>pass</td><td>17</td></tr>
+        <tr><td>fail</td><td>0</td></tr>
+        <tr><td>warn</td><td>0</td></tr>
+    </table>
+    <h2>Results</h2>
+    <div class="result pass">instruction-length (Ch5.2): pass — 68 words (limit: 1000)</div>
+    <div class="result pass">action-description (Ch7): pass — All actions have descriptions</div>
+    <div class="result pass">escalation-defined (Ch4): pass — 2 escalation triggers defined</div>
+    <div class="result pass">classification-specificity (Ch5.2): pass — 14 words</div>
+    <div class="result pass">has-welcome-message (Ch4): pass — Welcome message defined</div>
+    <div class="result pass">has-error-message (Ch4): pass — Error message defined</div>
+</body>
+</html>

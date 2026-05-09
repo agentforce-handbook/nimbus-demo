@@ -1,0 +1,5 @@
+{
+  "clientName": "UniversalContainers",
+  "responseFormats": ["text-choices"],
+  "specialInstructions": "Keep responses under 160 characters"
+}

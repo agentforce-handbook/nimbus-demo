@@ -59,7 +59,7 @@ if [ -f "$OUTPUT_DIR/agent-design.json" ]; then
     done
 
     # Check agent has required fields
-    python3 << 'PYEOF'
+    python3 - "$OUTPUT_DIR/agent-design.json" << 'PYEOF'
 import json, sys
 
 with open(sys.argv[1]) as f:
@@ -127,7 +127,7 @@ else:
     print("  [PASS] All required fields present and valid")
     print(f"  [INFO] {len(subagents)} subagents, total actions: {sum(len(s.get('actions',[])) for s in subagents)}")
 
-PYEOF "$OUTPUT_DIR/agent-design.json"
+PYEOF
 fi
 
 # Check deploy.sh is executable

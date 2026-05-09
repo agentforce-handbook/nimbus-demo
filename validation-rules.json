@@ -10,7 +10,7 @@
       "chapter": "5.2",
       "severity": "error",
       "scope": "subagent",
-      "check": "subagent.instructionWordCount <= 1000 || subagent.instructions.split(/\\s+/).length <= 1000"
+      "check": "subagent.instructionWordCount <= 1000 && subagent.instructions.split(/\\s+/).length <= 1000"
     },
     {
       "id": "instruction-goal-first",
@@ -117,6 +117,31 @@
       "severity": "error",
       "scope": "subagent",
       "check": "subagent.classificationDescription && subagent.classificationDescription.trim().length > 0"
+    },
+    {
+      "id": "classification-overlap",
+      "rule": "Classification descriptions should be mutually exclusive",
+      "chapter": "5.2",
+      "severity": "warning",
+      "scope": "agent",
+      "check": "true",
+      "note": "Heuristic: requires pairwise comparison of subagent classification descriptions. Evaluated by the audit skill using semantic similarity, not by this rule expression alone."
+    },
+    {
+      "id": "has-welcome-message",
+      "rule": "Agent should define a welcome message",
+      "chapter": "4",
+      "severity": "warning",
+      "scope": "agent",
+      "check": "agent.welcomeMessage && agent.welcomeMessage.trim().length > 0"
+    },
+    {
+      "id": "has-error-message",
+      "rule": "Agent should define an error message",
+      "chapter": "4",
+      "severity": "warning",
+      "scope": "agent",
+      "check": "agent.errorMessage && agent.errorMessage.trim().length > 0"
     }
   ]
 }

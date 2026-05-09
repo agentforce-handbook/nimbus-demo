@@ -1,0 +1,184 @@
+{
+  "agent": "SampleServiceAgent",
+  "auditedAt": "2026-05-08T12:00:00Z",
+  "source": "agent-design.json",
+  "summary": {
+    "total": 17,
+    "passed": 17,
+    "failed": 0,
+    "warnings": 0,
+    "score": "A"
+  },
+  "results": [
+    {
+      "ruleId": "instruction-length",
+      "rule": "Topic/subagent instructions must be under 1000 words",
+      "severity": "error",
+      "chapter": "5.2",
+      "status": "pass",
+      "element": "subagent:billing_support",
+      "detail": "Instructions are 68 words (limit: 1000)",
+      "fix": null
+    },
+    {
+      "ruleId": "instruction-goal-first",
+      "rule": "Instructions should lead with the goal, not the process",
+      "severity": "warning",
+      "chapter": "5.2",
+      "status": "pass",
+      "element": "subagent:billing_support",
+      "detail": "Instructions lead with goal statement",
+      "fix": null
+    },
+    {
+      "ruleId": "instruction-no-always",
+      "rule": "Prefer 'if' conditions over 'always' directives",
+      "severity": "warning",
+      "chapter": "5.2",
+      "status": "pass",
+      "element": "subagent:billing_support",
+      "detail": "No excessive use of 'always'",
+      "fix": null
+    },
+    {
+      "ruleId": "instruction-has-negatives",
+      "rule": "Instructions should specify what the agent should NOT do",
+      "severity": "warning",
+      "chapter": "5.2",
+      "status": "pass",
+      "element": "subagent:billing_support",
+      "detail": "Contains 'Do not process refunds' and 'Do not share billing details'",
+      "fix": null
+    },
+    {
+      "ruleId": "action-count",
+      "rule": "Maximum 6 actions per topic/subagent",
+      "severity": "warning",
+      "chapter": "5.3",
+      "status": "pass",
+      "element": "subagent:billing_support",
+      "detail": "1 action (limit: 6)",
+      "fix": null
+    },
+    {
+      "ruleId": "action-description",
+      "rule": "Every action must have a non-empty description",
+      "severity": "error",
+      "chapter": "7",
+      "status": "pass",
+      "element": "action:lookup_invoice",
+      "detail": "Description present",
+      "fix": null
+    },
+    {
+      "ruleId": "input-description",
+      "rule": "Every action input must have a non-empty description",
+      "severity": "error",
+      "chapter": "7",
+      "status": "pass",
+      "element": "action:lookup_invoice",
+      "detail": "All 2 inputs have descriptions",
+      "fix": null
+    },
+    {
+      "ruleId": "output-description",
+      "rule": "Every action output must have a non-empty description",
+      "severity": "error",
+      "chapter": "7",
+      "status": "pass",
+      "element": "action:lookup_invoice",
+      "detail": "All 3 outputs have descriptions",
+      "fix": null
+    },
+    {
+      "ruleId": "error-output",
+      "rule": "Every action should have an error message output",
+      "severity": "warning",
+      "chapter": "7",
+      "status": "pass",
+      "element": "action:lookup_invoice",
+      "detail": "errorMessage output present",
+      "fix": null
+    },
+    {
+      "ruleId": "action-target",
+      "rule": "Action targets should not be empty or TODO in production",
+      "severity": "warning",
+      "chapter": "7",
+      "status": "pass",
+      "element": "action:lookup_invoice",
+      "detail": "Target: apex://InvoiceLookupAction",
+      "fix": null
+    },
+    {
+      "ruleId": "classification-specificity",
+      "rule": "Classification descriptions must be specific (>10 words)",
+      "severity": "warning",
+      "chapter": "5.2",
+      "status": "pass",
+      "element": "subagent:billing_support",
+      "detail": "Description is 14 words",
+      "fix": null
+    },
+    {
+      "ruleId": "classification-overlap",
+      "rule": "Classification descriptions should be mutually exclusive",
+      "severity": "warning",
+      "chapter": "5.2",
+      "status": "pass",
+      "element": "agent:SampleServiceAgent",
+      "detail": "No significant overlap detected between subagent classifications",
+      "fix": null
+    },
+    {
+      "ruleId": "escalation-defined",
+      "rule": "Every subagent must define escalation triggers",
+      "severity": "error",
+      "chapter": "4",
+      "status": "pass",
+      "element": "subagent:billing_support",
+      "detail": "2 escalation triggers defined",
+      "fix": null
+    },
+    {
+      "ruleId": "agent-has-description",
+      "rule": "Agent must have a non-empty description",
+      "severity": "error",
+      "chapter": "4",
+      "status": "pass",
+      "element": "agent:SampleServiceAgent",
+      "detail": "Description present",
+      "fix": null
+    },
+    {
+      "ruleId": "subagent-has-description",
+      "rule": "Every subagent must have a classification description",
+      "severity": "error",
+      "chapter": "5.2",
+      "status": "pass",
+      "element": "subagent:billing_support",
+      "detail": "Classification description present",
+      "fix": null
+    },
+    {
+      "ruleId": "has-welcome-message",
+      "rule": "Agent should define a welcome message",
+      "severity": "warning",
+      "chapter": "4",
+      "status": "pass",
+      "element": "agent:SampleServiceAgent",
+      "detail": "Welcome message present",
+      "fix": null
+    },
+    {
+      "ruleId": "has-error-message",
+      "rule": "Agent should define an error message",
+      "severity": "warning",
+      "chapter": "4",
+      "status": "pass",
+      "element": "agent:SampleServiceAgent",
+      "detail": "Error message present",
+      "fix": null
+    }
+  ]
+}

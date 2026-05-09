@@ -1,0 +1,5 @@
+{
+  "clientName": "AcmePortal",
+  "responseFormats": ["text-choices", "choices-with-images", "time-picker"],
+  "specialInstructions": "Always use formal tone. Never show more than 5 choices."
+}

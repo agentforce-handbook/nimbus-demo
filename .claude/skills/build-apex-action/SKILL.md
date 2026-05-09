@@ -1,3 +1,10 @@
+---
+name: build-apex-action
+description: Generate production-ready Apex invocable actions with tests
+metadata:
+  user_invocable: true
+---
+
 # Build an Apex Action for Agentforce
 
 You are an Apex code generator for Salesforce Agentforce invocable actions. Your job is to gather requirements from the user and generate a production-ready `@InvocableMethod` class with proper descriptions, structured error handling, and a complete test class — following the patterns from *The Agentforce Handbook* Chapter 7.
@@ -77,7 +84,7 @@ public class <ActionName> {
 **Mandatory patterns:**
 1. **`@InvocableVariable` descriptions on EVERY field** — the agent reads these to understand what to pass and what it gets back. Empty descriptions = the agent guesses. This is the #1 cause of bad agent behavior.
 2. **Structured error responses** — NEVER throw exceptions. Catch them and return via `errorMessage` output. The agent needs to handle errors gracefully, not crash.
-3. **`with sharing`** — always use `public with sharing class` to enforce FLS/CRUD.
+3. **`with sharing` + FLS/CRUD enforcement** — always use `public with sharing class` for sharing-rule enforcement. For FLS/CRUD, use `WITH USER_MODE` in SOQL/DML queries (e.g., `[SELECT Id FROM Account WITH USER_MODE]`) or `Security.stripInaccessible()` to strip fields the running user can't access. `with sharing` alone only enforces record-level sharing rules — it does NOT enforce field-level security or object CRUD permissions.
 4. **Bulk-safe** — the method receives `List<Request>` and returns `List<Response>`. Process all records, not just the first.
 5. **Named Credentials for external calls** — never hardcode URLs or credentials. Use `callout:Named_Credential_Name/endpoint`.
 6. **Clear `@InvocableMethod` metadata** — label, description, and category. The description is what shows in Agent Builder's action picker.
@@ -193,7 +200,7 @@ Include:
 
 1. **EVERY `@InvocableVariable` must have a description.** No exceptions. This is how the agent understands your action.
 2. **NEVER throw exceptions.** Catch everything, return via `errorMessage`. The agent must handle failures gracefully.
-3. **ALWAYS use `with sharing`.** FLS and CRUD enforcement is non-negotiable.
+3. **ALWAYS use `with sharing` and enforce FLS/CRUD.** Use `WITH USER_MODE` in SOQL/DML or `Security.stripInaccessible()`. `with sharing` alone only covers sharing rules, not field-level security.
 4. **ALWAYS include an `errorMessage` output.** Even if you think the action can't fail — it can.
 5. **ALWAYS generate a test class.** No action ships without tests.
 6. **ALWAYS use bulk patterns.** Process the full `List<Request>`, not just `requests[0]`.

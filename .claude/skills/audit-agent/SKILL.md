@@ -1,3 +1,10 @@
+---
+name: audit-agent
+description: Audit agent metadata against handbook best practices
+metadata:
+  user_invocable: true
+---
+
 # Audit an Agentforce Agent
 
 You are an agent quality auditor for Salesforce Agentforce. Your job is to scan agent metadata — either from an SFDX project directory or from an `agent-design.json` contract — and produce a scorecard against the best practices from *The Agentforce Handbook*.
@@ -52,43 +59,43 @@ Apply each rule from the handbook. For every rule, produce a PASS, FAIL, or WARN
 
 | ID | Rule | Severity | Chapter |
 |----|------|----------|---------|
-| `instruction-length` | Topic/subagent instructions must be under 1000 words | ERROR | 5.2 |
-| `instruction-goal-first` | Instructions should lead with the goal, not the process | WARN | 5.2 |
-| `instruction-no-always` | Prefer "if" conditions over "always" directives | WARN | 5.2 |
-| `instruction-has-negatives` | Instructions should specify what the agent should NOT do | WARN | 5.2 |
+| `instruction-length` | Topic/subagent instructions must be under 1000 words | error | 5.2 |
+| `instruction-goal-first` | Instructions should lead with the goal, not the process | warning | 5.2 |
+| `instruction-no-always` | Prefer "if" conditions over "always" directives | warning | 5.2 |
+| `instruction-has-negatives` | Instructions should specify what the agent should NOT do | warning | 5.2 |
 
 **Action Rules (Ch7):**
 
 | ID | Rule | Severity | Chapter |
 |----|------|----------|---------|
-| `action-count` | Maximum 6 actions per topic/subagent | WARNING | 5.3 |
-| `action-description` | Every action must have a non-empty description | ERROR | 7 |
-| `input-description` | Every action input must have a non-empty description | ERROR | 7 |
-| `output-description` | Every action output must have a non-empty description | ERROR | 7 |
-| `error-output` | Every action should have an error message output | WARNING | 7 |
-| `action-target` | Action targets should not be empty or TODO in production | WARNING | 7 |
+| `action-count` | Maximum 6 actions per topic/subagent | warning | 5.3 |
+| `action-description` | Every action must have a non-empty description | error | 7 |
+| `input-description` | Every action input must have a non-empty description | error | 7 |
+| `output-description` | Every action output must have a non-empty description | error | 7 |
+| `error-output` | Every action should have an error message output | warning | 7 |
+| `action-target` | Action targets should not be empty or TODO in production | warning | 7 |
 
 **Classification Rules (Ch5.2):**
 
 | ID | Rule | Severity | Chapter |
 |----|------|----------|---------|
-| `classification-specificity` | Classification descriptions must be specific (>10 words) | WARNING | 5.2 |
-| `classification-overlap` | Classification descriptions should be mutually exclusive | WARNING | 5.2 |
+| `classification-specificity` | Classification descriptions must be specific (>10 words) | warning | 5.2 |
+| `classification-overlap` | Classification descriptions should be mutually exclusive | warning | 5.2 |
 
 **Escalation Rules (Ch4):**
 
 | ID | Rule | Severity | Chapter |
 |----|------|----------|---------|
-| `escalation-defined` | Every subagent must define escalation triggers | ERROR | 4 |
+| `escalation-defined` | Every subagent must define escalation triggers | error | 4 |
 
 **Structural Rules:**
 
 | ID | Rule | Severity | Chapter |
 |----|------|----------|---------|
-| `agent-has-description` | Agent must have a non-empty description | ERROR | 4 |
-| `subagent-has-description` | Every subagent must have a classification description | ERROR | 5.2 |
-| `has-welcome-message` | Agent should define a welcome message | WARNING | 4 |
-| `has-error-message` | Agent should define an error message | WARNING | 4 |
+| `agent-has-description` | Agent must have a non-empty description | error | 4 |
+| `subagent-has-description` | Every subagent must have a classification description | error | 5.2 |
+| `has-welcome-message` | Agent should define a welcome message | warning | 4 |
+| `has-error-message` | Agent should define an error message | warning | 4 |
 
 ### Step 4: Generate the scorecard
 
@@ -113,15 +120,15 @@ output/
     "passed": 0,
     "failed": 0,
     "warnings": 0,
-    "score": "A | B | C | D | F"
+    "score": "A|B|C|D|F"
   },
   "results": [
     {
       "ruleId": "instruction-length",
       "rule": "Topic instructions must be under 1000 words",
-      "severity": "ERROR",
+      "severity": "error",
       "chapter": "5.2",
-      "status": "PASS | FAIL | WARN",
+      "status": "pass | fail | warn",
       "element": "subagent:order_inquiries",
       "detail": "Instructions are 847 words (limit: 1000)",
       "fix": null
