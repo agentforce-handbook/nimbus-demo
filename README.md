@@ -127,7 +127,8 @@ This repo includes Claude Code skills for building Agentforce agents. Install th
 | `/agentforce:design-agent` | Generate a complete agent design from a business process | Ch4, Ch5 |
 | `/agentforce:build-apex-action` | Generate production-ready Apex invocable actions with tests | Ch7 |
 | `/agentforce:audit-agent` | Audit agent metadata against handbook best practices | Ch4, Ch5, Ch7 |
-| `/agentforce:build-custom-connection` | Build custom connection metadata for Agentforce | Ch11 |
+| `/agentforce:build-evals` | Generate a Testing Center eval suite from an agent design | Ch11 |
+| `/agentforce:build-custom-connection` | Build custom connection metadata for Agentforce | Ch10 |
 
 Skills share a common data contract ([agent-design-v1.schema.json](agent-contract/agent-design-v1.schema.json)) and validation rules ([validation-rules.json](validation-rules.json)).
 

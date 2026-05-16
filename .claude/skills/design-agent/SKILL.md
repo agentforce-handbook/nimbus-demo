@@ -100,7 +100,7 @@ Reference the NimbusServiceAgent.agent in this repo for the canonical structure.
 
 ### Step 3c: Generate the shared data contract (agent-design.json)
 
-This JSON file is consumed by other skills (audit-agent, write-evals). Follow this schema:
+This JSON file is consumed by other skills (audit-agent, build-evals). Follow this schema:
 
 ```json
 {
@@ -188,7 +188,7 @@ echo "To audit this agent against handbook best practices:"
 echo "  Run /agentforce:audit-agent"
 echo ""
 echo "To generate test cases:"
-echo "  Run /agentforce:write-evals (coming in v2)"
+echo "  Run /agentforce:build-evals"
 ```
 
 Make the script executable after creating it.
