@@ -28,7 +28,7 @@ This repository contains the Nimbus Electronics demo org metadata referenced thr
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/athinesh-dev/nimbus-demo.git
+git clone https://github.com/agentforce-handbook/nimbus-demo.git
 cd nimbus-demo
 ```
 
