@@ -1,0 +1,1325 @@
+# Eval Suite for NimbusServiceAgent
+# Generated: 2026-05-16
+# Methodology: The Agentforce Handbook Ch11 (Testing and Evaluation)
+# Agent: NimbusServiceAgent
+# Subagents: 5 (order_inquiries, warranty_service, delivery_issues, account_management, general_faq)
+
+---
+
+# =============================================================================
+# SUBAGENT: order_inquiries
+# =============================================================================
+
+# --- Happy Path ---
+
+- test_case_id: TC-ORDER-001
+  topic: order_inquiries
+  category: happy_path
+  description: Customer asks for order status with valid order number and email
+  input: >
+    Hi, I'd like to check the status of my order NIM-10001. My email is jane@example.com.
+  context:
+    customer_id: "CUST-001"
+    order_number: "NIM-10001"
+    customer_email: "jane@example.com"
+  expected_behavior:
+    topic_routed: "order_inquiries"
+    actions_invoked:
+      - name: "get_order_status"
+        required: true
+    response_must_include:
+      - order status information (Processing, Shipped, Delivered, or Cancelled)
+      - reference to the order number NIM-10001
+    response_must_not_include:
+      - other customers' order details
+      - internal system IDs or database fields
+      - fabricated tracking numbers if order has not shipped
+    resolution: resolved_without_escalation
+  utterance_variations:
+    polite: "Hello, could you please look up my order NIM-10001? My email is jane@example.com."
+    frustrated: "I need to know where my order NIM-10001 is. Email is jane@example.com. Nobody has told me anything."
+    terse: "Order NIM-10001, jane@example.com, status?"
+  scoring_thresholds:
+    topic_accuracy: 1.0
+    action_invocation: 1.0
+    response_quality: 0.8
+    task_resolution: 0.9
+    groundedness: 0.9
+
+- test_case_id: TC-ORDER-002
+  topic: order_inquiries
+  category: happy_path
+  description: Customer asks for tracking information on a shipped order
+  input: >
+    Can you give me the tracking number for order NIM-20045? I'm jane@example.com.
+  context:
+    customer_id: "CUST-002"
+    order_number: "NIM-20045"
+    customer_email: "jane@example.com"
+    order_status: "Shipped"
+  expected_behavior:
+    topic_routed: "order_inquiries"
+    actions_invoked:
+      - name: "get_order_status"
+        required: true
+    response_must_include:
+      - tracking number
+      - estimated delivery date
+    response_must_not_include:
+      - internal shipping cost or margin data
+      - other customers' tracking info
+    resolution: resolved_without_escalation
+  utterance_variations:
+    polite: "Hi there, would you mind sharing the tracking details for my order NIM-20045? My email is jane@example.com."
+    frustrated: "Where is my package? Order NIM-20045. I need the tracking number NOW. jane@example.com."
+    terse: "Tracking for NIM-20045. jane@example.com."
+  scoring_thresholds:
+    topic_accuracy: 1.0
+    action_invocation: 1.0
+    response_quality: 0.8
+    task_resolution: 0.9
+    groundedness: 0.9
+
+- test_case_id: TC-ORDER-003
+  topic: order_inquiries
+  category: happy_path
+  description: Customer asks about expected delivery date
+  input: >
+    When will my order NIM-30012 arrive? My email is mike@example.com.
+  context:
+    customer_id: "CUST-003"
+    order_number: "NIM-30012"
+    customer_email: "mike@example.com"
+  expected_behavior:
+    topic_routed: "order_inquiries"
+    actions_invoked:
+      - name: "get_order_status"
+        required: true
+    response_must_include:
+      - estimated delivery date or timeframe
+      - current order status
+    response_must_not_include:
+      - guaranteed delivery promises beyond what the system shows
+      - internal logistics details
+    resolution: resolved_without_escalation
+  utterance_variations:
+    polite: "Could you tell me the expected delivery date for order NIM-30012? I'm mike@example.com."
+    frustrated: "I ordered weeks ago. When is NIM-30012 going to get here? mike@example.com."
+    terse: "ETA on NIM-30012? mike@example.com"
+  scoring_thresholds:
+    topic_accuracy: 1.0
+    action_invocation: 1.0
+    response_quality: 0.8
+    task_resolution: 0.9
+    groundedness: 0.9
+
+# --- Edge Cases ---
+
+- test_case_id: TC-ORDER-004
+  topic: order_inquiries
+  category: edge_case
+  description: Customer provides order number but no email — agent should ask for verification
+  input: >
+    What's the status of NIM-10001?
+  context:
+    customer_id: "CUST-001"
+    order_number: "NIM-10001"
+  expected_behavior:
+    topic_routed: "order_inquiries"
+    actions_invoked: []
+    response_must_include:
+      - request for email address for verification
+    response_must_not_include:
+      - order status information without verification
+      - any order details before identity is confirmed
+    resolution: resolved_without_escalation
+  utterance_variations:
+    polite: "I'd like to check on order NIM-10001, please."
+    frustrated: "Just tell me what's happening with NIM-10001 already."
+    terse: "NIM-10001 status"
+  scoring_thresholds:
+    topic_accuracy: 1.0
+    action_invocation: 1.0
+    response_quality: 0.8
+    task_resolution: 0.9
+    groundedness: 0.9
+
+- test_case_id: TC-ORDER-005
+  topic: order_inquiries
+  category: edge_case
+  description: Customer asks about an order that is late — agent should proactively check lateness
+  input: >
+    My order NIM-40099 was supposed to arrive 5 days ago. What's going on? Email is sarah@example.com.
+  context:
+    customer_id: "CUST-004"
+    order_number: "NIM-40099"
+    customer_email: "sarah@example.com"
+    order_status: "Shipped"
+    is_late: true
+    days_late: 5
+  expected_behavior:
+    topic_routed: "order_inquiries"
+    actions_invoked:
+      - name: "get_order_status"
+        required: true
+      - name: "check_if_order_late"
+        required: true
+    response_must_include:
+      - acknowledgment that the order is delayed
+      - information about what will happen next (investigation or escalation)
+    response_must_not_include:
+      - dismissal of the customer's concern
+      - false promises about exact delivery times
+    resolution: resolved_with_escalation
+  utterance_variations:
+    polite: "My order NIM-40099 seems to be running late. Could you please look into it? My email is sarah@example.com."
+    frustrated: "This is ridiculous. NIM-40099 is 5 days late! sarah@example.com. What are you going to do about it?"
+    terse: "NIM-40099 is late. sarah@example.com. Fix it."
+  scoring_thresholds:
+    topic_accuracy: 1.0
+    action_invocation: 1.0
+    response_quality: 0.8
+    task_resolution: 0.9
+    groundedness: 0.9
+
+# --- Error Path ---
+
+- test_case_id: TC-ORDER-006
+  topic: order_inquiries
+  category: error_path
+  description: Customer provides an invalid order number format — agent handles gracefully
+  input: >
+    Check order ABC-WRONG-123 please. My email is bob@example.com.
+  context:
+    customer_id: "CUST-005"
+    customer_email: "bob@example.com"
+  expected_behavior:
+    topic_routed: "order_inquiries"
+    actions_invoked: []
+    response_must_include:
+      - indication that the order number format appears incorrect
+      - guidance on what a valid order number looks like (NIM-XXXXX)
+    response_must_not_include:
+      - fabricated order status for an invalid number
+      - claim that the order was found
+    resolution: resolved_without_escalation
+  utterance_variations:
+    polite: "Could you look up order ABC-WRONG-123? My email is bob@example.com."
+    frustrated: "Why can't I find my order? The number is ABC-WRONG-123. bob@example.com."
+    terse: "ABC-WRONG-123, bob@example.com"
+  scoring_thresholds:
+    topic_accuracy: 1.0
+    action_invocation: 1.0
+    response_quality: 0.8
+    task_resolution: 0.9
+    groundedness: 0.9
+
+# =============================================================================
+# SUBAGENT: warranty_service
+# =============================================================================
+
+# --- Happy Path ---
+
+- test_case_id: TC-WARRANTY-001
+  topic: warranty_service
+  category: happy_path
+  description: Customer checks warranty status for a product with valid serial number
+  input: >
+    Is my NimbusPad still under warranty? Serial number is NB-SN-44821. My email is lisa@example.com.
+  context:
+    customer_id: "CUST-010"
+    serial_number: "NB-SN-44821"
+    customer_email: "lisa@example.com"
+  expected_behavior:
+    topic_routed: "warranty_service"
+    actions_invoked:
+      - name: "check_warranty"
+        required: true
+    response_must_include:
+      - warranty status (active or expired)
+      - warranty expiry date
+      - coverage type information
+    response_must_not_include:
+      - internal cost or margin data
+      - other customers' warranty details
+    resolution: resolved_without_escalation
+  utterance_variations:
+    polite: "Hello, I'd like to check if my NimbusPad is still covered under warranty. The serial is NB-SN-44821 and my email is lisa@example.com."
+    frustrated: "My NimbusPad broke and I need to know if I'm covered. Serial NB-SN-44821. lisa@example.com."
+    terse: "Warranty check, NB-SN-44821, lisa@example.com"
+  scoring_thresholds:
+    topic_accuracy: 1.0
+    action_invocation: 1.0
+    response_quality: 0.8
+    task_resolution: 0.9
+    groundedness: 0.9
+
+- test_case_id: TC-WARRANTY-002
+  topic: warranty_service
+  category: happy_path
+  description: Customer reports a product defect and wants to file a warranty claim
+  input: >
+    My NimbusPhone screen has dead pixels. I bought it 3 months ago. Serial number NB-SN-55012. Email is tom@example.com.
+  context:
+    customer_id: "CUST-011"
+    serial_number: "NB-SN-55012"
+    customer_email: "tom@example.com"
+    is_under_warranty: true
+  expected_behavior:
+    topic_routed: "warranty_service"
+    actions_invoked:
+      - name: "check_warranty"
+        required: true
+    response_must_include:
+      - confirmation that warranty is active
+      - next steps for filing a warranty claim
+      - information about replacement or repair process
+    response_must_not_include:
+      - denial of a valid warranty claim
+      - request for payment when product is under warranty
+    resolution: resolved_without_escalation
+  utterance_variations:
+    polite: "I'd like to report a defect with my NimbusPhone. The screen has dead pixels. Serial is NB-SN-55012, email tom@example.com."
+    frustrated: "This phone is only 3 months old and the screen already has dead pixels! Serial NB-SN-55012. tom@example.com. I want a replacement."
+    terse: "Dead pixels NimbusPhone. NB-SN-55012. tom@example.com. Fix it."
+  scoring_thresholds:
+    topic_accuracy: 1.0
+    action_invocation: 1.0
+    response_quality: 0.8
+    task_resolution: 0.9
+    groundedness: 0.9
+
+# --- Edge Cases ---
+
+- test_case_id: TC-WARRANTY-003
+  topic: warranty_service
+  category: edge_case
+  description: Customer asks about warranty but product warranty has expired
+  input: >
+    I need warranty service for my NimbusWatch. Serial number NB-SN-11003. Email is dave@example.com.
+  context:
+    customer_id: "CUST-012"
+    serial_number: "NB-SN-11003"
+    customer_email: "dave@example.com"
+    is_under_warranty: false
+    warranty_expiry: "2025-12-01"
+  expected_behavior:
+    topic_routed: "warranty_service"
+    actions_invoked:
+      - name: "check_warranty"
+        required: true
+    response_must_include:
+      - clear communication that warranty has expired
+      - warranty expiry date
+      - alternative options (paid repair, trade-in, etc.)
+    response_must_not_include:
+      - approval of warranty claim for expired product
+      - false statement that warranty is still active
+    resolution: resolved_without_escalation
+  utterance_variations:
+    polite: "Could you check the warranty on my NimbusWatch? Serial NB-SN-11003. dave@example.com."
+    frustrated: "My NimbusWatch broke and I expect this to be covered! Serial NB-SN-11003. dave@example.com."
+    terse: "Warranty NB-SN-11003. dave@example.com."
+  scoring_thresholds:
+    topic_accuracy: 1.0
+    action_invocation: 1.0
+    response_quality: 0.8
+    task_resolution: 0.9
+    groundedness: 0.9
+
+- test_case_id: TC-WARRANTY-004
+  topic: warranty_service
+  category: edge_case
+  description: Customer describes damage that may be user-caused vs manufacturing defect — ambiguous scenario
+  input: >
+    My NimbusBook screen cracked but I swear I didn't drop it. It just cracked on its own. Serial NB-SN-77001. Email karen@example.com.
+  context:
+    customer_id: "CUST-013"
+    serial_number: "NB-SN-77001"
+    customer_email: "karen@example.com"
+    is_under_warranty: true
+  expected_behavior:
+    topic_routed: "warranty_service"
+    actions_invoked:
+      - name: "check_warranty"
+        required: true
+    response_must_include:
+      - acknowledgment of the issue
+      - explanation that warranty assessment will determine coverage
+      - next steps for evaluation
+    response_must_not_include:
+      - accusation that the customer caused the damage
+      - unconditional guarantee of free replacement without assessment
+    resolution: resolved_without_escalation
+  utterance_variations:
+    polite: "I have a cracked screen on my NimbusBook, but I believe it's a manufacturing issue. Serial NB-SN-77001, email karen@example.com."
+    frustrated: "This is unacceptable — my NimbusBook screen cracked on its own! I want it fixed for free. NB-SN-77001. karen@example.com."
+    terse: "Cracked screen, not my fault. NB-SN-77001. karen@example.com."
+  scoring_thresholds:
+    topic_accuracy: 1.0
+    action_invocation: 1.0
+    response_quality: 0.8
+    task_resolution: 0.9
+    groundedness: 0.9
+
+# --- Error Path ---
+
+- test_case_id: TC-WARRANTY-005
+  topic: warranty_service
+  category: error_path
+  description: Customer provides invalid serial number that does not exist in the system
+  input: >
+    Check warranty for serial number FAKE-12345. My email is test@example.com.
+  context:
+    customer_id: "CUST-014"
+    serial_number: "FAKE-12345"
+    customer_email: "test@example.com"
+  expected_behavior:
+    topic_routed: "warranty_service"
+    actions_invoked:
+      - name: "check_warranty"
+        required: false
+    response_must_include:
+      - indication that the serial number was not found
+      - guidance on where to find the correct serial number
+    response_must_not_include:
+      - fabricated warranty status for a non-existent serial
+      - claim that the product is under warranty
+    resolution: resolved_without_escalation
+  utterance_variations:
+    polite: "Could you check warranty for serial FAKE-12345? My email is test@example.com."
+    frustrated: "Why can't you find my product? Serial is FAKE-12345. test@example.com."
+    terse: "Warranty FAKE-12345. test@example.com."
+  scoring_thresholds:
+    topic_accuracy: 1.0
+    action_invocation: 1.0
+    response_quality: 0.8
+    task_resolution: 0.9
+    groundedness: 0.9
+
+# =============================================================================
+# SUBAGENT: delivery_issues
+# =============================================================================
+
+# --- Happy Path ---
+
+- test_case_id: TC-DELIVERY-001
+  topic: delivery_issues
+  category: happy_path
+  description: Customer asks for shipping status of an in-transit order
+  input: >
+    Where is my package for order NIM-50023? It was supposed to arrive yesterday.
+  context:
+    customer_id: "CUST-020"
+    order_number: "NIM-50023"
+  expected_behavior:
+    topic_routed: "delivery_issues"
+    actions_invoked:
+      - name: "get_shipping_status"
+        required: true
+    response_must_include:
+      - current shipping status
+      - carrier information
+      - estimated arrival time
+    response_must_not_include:
+      - other customers' shipping information
+      - internal carrier account numbers
+    resolution: resolved_without_escalation
+  utterance_variations:
+    polite: "Hi, could you help me track order NIM-50023? I was expecting it yesterday."
+    frustrated: "My package NIM-50023 is LATE. Where is it? I needed it yesterday!"
+    terse: "Track NIM-50023. Late."
+  scoring_thresholds:
+    topic_accuracy: 1.0
+    action_invocation: 1.0
+    response_quality: 0.8
+    task_resolution: 0.9
+    groundedness: 0.9
+
+- test_case_id: TC-DELIVERY-002
+  topic: delivery_issues
+  category: happy_path
+  description: Customer reports receiving a damaged package
+  input: >
+    I received my order NIM-60010 but the box was crushed and the product inside is damaged.
+  context:
+    customer_id: "CUST-021"
+    order_number: "NIM-60010"
+  expected_behavior:
+    topic_routed: "delivery_issues"
+    actions_invoked:
+      - name: "get_shipping_status"
+        required: false
+    response_must_include:
+      - acknowledgment of the damage
+      - next steps for reporting damaged goods
+      - request for photos or additional details
+    response_must_not_include:
+      - blame placed on the customer
+      - suggestion that damage is not covered
+    resolution: resolved_without_escalation
+  utterance_variations:
+    polite: "I received order NIM-60010 today but unfortunately the package was damaged in transit. The product inside is broken."
+    frustrated: "My order NIM-60010 arrived destroyed! The box was crushed. This is completely unacceptable!"
+    terse: "NIM-60010 arrived damaged. Product broken."
+  scoring_thresholds:
+    topic_accuracy: 1.0
+    action_invocation: 1.0
+    response_quality: 0.8
+    task_resolution: 0.9
+    groundedness: 0.9
+
+- test_case_id: TC-DELIVERY-003
+  topic: delivery_issues
+  category: happy_path
+  description: Customer received wrong item in their order
+  input: >
+    I ordered a NimbusPad but received a NimbusWatch instead. Order NIM-70005.
+  context:
+    customer_id: "CUST-022"
+    order_number: "NIM-70005"
+  expected_behavior:
+    topic_routed: "delivery_issues"
+    actions_invoked:
+      - name: "get_shipping_status"
+        required: false
+    response_must_include:
+      - acknowledgment of the mix-up
+      - process for returning wrong item
+      - plan for getting the correct item to the customer
+    response_must_not_include:
+      - suggestion that the customer ordered the wrong item
+      - request for payment for the correct item
+    resolution: resolved_without_escalation
+  utterance_variations:
+    polite: "There seems to be a mix-up with my order NIM-70005. I ordered a NimbusPad but received a NimbusWatch."
+    frustrated: "You sent me the wrong product! I ordered a NimbusPad and got a NimbusWatch. Order NIM-70005. This is the second time this happened!"
+    terse: "Wrong item. Ordered NimbusPad got NimbusWatch. NIM-70005."
+  scoring_thresholds:
+    topic_accuracy: 1.0
+    action_invocation: 1.0
+    response_quality: 0.8
+    task_resolution: 0.9
+    groundedness: 0.9
+
+# --- Edge Cases ---
+
+- test_case_id: TC-DELIVERY-004
+  topic: delivery_issues
+  category: edge_case
+  description: Customer wants to change delivery address for an order already in transit
+  input: >
+    I need to change the shipping address for order NIM-80033. It's already been shipped but I moved to a new apartment.
+  context:
+    customer_id: "CUST-023"
+    order_number: "NIM-80033"
+    order_status: "Shipped"
+  expected_behavior:
+    topic_routed: "delivery_issues"
+    actions_invoked:
+      - name: "get_shipping_status"
+        required: true
+    response_must_include:
+      - explanation of limitations on changing address for in-transit orders
+      - available options (carrier redirect, hold at facility, etc.)
+    response_must_not_include:
+      - unconditional promise that address can be changed
+      - false claim that packages can always be redirected
+    resolution: resolved_without_escalation
+  utterance_variations:
+    polite: "Is it possible to update the delivery address for NIM-80033? I've just moved and it was already shipped."
+    frustrated: "I moved and my package NIM-80033 is going to the wrong address! You need to fix this now!"
+    terse: "Change address NIM-80033. Already shipped. New address needed."
+  scoring_thresholds:
+    topic_accuracy: 1.0
+    action_invocation: 1.0
+    response_quality: 0.8
+    task_resolution: 0.9
+    groundedness: 0.9
+
+- test_case_id: TC-DELIVERY-005
+  topic: delivery_issues
+  category: edge_case
+  description: Package is significantly late (3+ days) — should escalate to human agent
+  input: >
+    My order NIM-90001 is now 5 days past the delivery date. I've been waiting over two weeks total. What is happening?
+  context:
+    customer_id: "CUST-024"
+    order_number: "NIM-90001"
+    days_late: 5
+  expected_behavior:
+    topic_routed: "delivery_issues"
+    actions_invoked:
+      - name: "get_shipping_status"
+        required: true
+    response_must_include:
+      - acknowledgment of significant delay
+      - escalation to human agent or investigation team
+    response_must_not_include:
+      - dismissal of the delay
+      - vague promise without concrete action
+    resolution: correctly_escalated
+  utterance_variations:
+    polite: "I'm concerned about order NIM-90001. It's 5 days past the expected delivery. Could someone investigate?"
+    frustrated: "This is absolutely unacceptable! NIM-90001 is 5 days late! I want to speak to someone who can actually help!"
+    terse: "NIM-90001. Five days late. Escalate."
+  scoring_thresholds:
+    topic_accuracy: 1.0
+    action_invocation: 1.0
+    response_quality: 0.8
+    task_resolution: 0.9
+    groundedness: 0.9
+
+# --- Error Path ---
+
+- test_case_id: TC-DELIVERY-006
+  topic: delivery_issues
+  category: error_path
+  description: Customer reports missing package but provides no order number or identifying info
+  input: >
+    My package never arrived. I don't remember the order number. Can you help?
+  context:
+    customer_id: "CUST-025"
+  expected_behavior:
+    topic_routed: "delivery_issues"
+    actions_invoked: []
+    response_must_include:
+      - request for order number or other identifying information
+      - suggestions for how to find the order number (confirmation email, account page)
+    response_must_not_include:
+      - fabricated order information
+      - claim that package was delivered without checking
+    resolution: resolved_without_escalation
+  utterance_variations:
+    polite: "I'm expecting a package that hasn't arrived yet, but I seem to have lost the order number. Can you help me find it?"
+    frustrated: "Where is my stuff?! Something was supposed to arrive and it never did!"
+    terse: "Package missing. No order number."
+  scoring_thresholds:
+    topic_accuracy: 1.0
+    action_invocation: 1.0
+    response_quality: 0.8
+    task_resolution: 0.9
+    groundedness: 0.9
+
+# =============================================================================
+# SUBAGENT: account_management
+# =============================================================================
+
+# --- Happy Path ---
+
+- test_case_id: TC-ACCOUNT-001
+  topic: account_management
+  category: happy_path
+  description: Customer wants to update their shipping address
+  input: >
+    I need to update my shipping address. My email is alex@example.com and I've moved to 456 Oak Street, Austin, TX 78701.
+  context:
+    customer_id: "CUST-030"
+    customer_email: "alex@example.com"
+    is_verified: true
+  expected_behavior:
+    topic_routed: "account_management"
+    actions_invoked: []
+    response_must_include:
+      - confirmation of the address change request
+      - verification step or confirmation before finalizing
+    response_must_not_include:
+      - other account details not requested
+      - payment information
+    resolution: resolved_without_escalation
+  utterance_variations:
+    polite: "Hi, I'd like to change my shipping address on file. My email is alex@example.com. My new address is 456 Oak Street, Austin, TX 78701."
+    frustrated: "I've been trying to update my address for days! Email alex@example.com. New address: 456 Oak Street, Austin, TX 78701."
+    terse: "Update address. alex@example.com. 456 Oak Street, Austin, TX 78701."
+  scoring_thresholds:
+    topic_accuracy: 1.0
+    action_invocation: 1.0
+    response_quality: 0.8
+    task_resolution: 0.9
+    groundedness: 0.9
+
+- test_case_id: TC-ACCOUNT-002
+  topic: account_management
+  category: happy_path
+  description: Customer wants to update their email address
+  input: >
+    I want to change my email from old@example.com to new@example.com on my account.
+  context:
+    customer_id: "CUST-031"
+    customer_email: "old@example.com"
+    is_verified: true
+  expected_behavior:
+    topic_routed: "account_management"
+    actions_invoked: []
+    response_must_include:
+      - acknowledgment of email change request
+      - verification or confirmation step
+    response_must_not_include:
+      - password or sensitive account details
+      - other customers' information
+    resolution: resolved_without_escalation
+  utterance_variations:
+    polite: "Could you help me change the email address associated with my account from old@example.com to new@example.com?"
+    frustrated: "I've been getting emails at the wrong address. Change it from old@example.com to new@example.com already!"
+    terse: "Change email old@example.com to new@example.com."
+  scoring_thresholds:
+    topic_accuracy: 1.0
+    action_invocation: 1.0
+    response_quality: 0.8
+    task_resolution: 0.9
+    groundedness: 0.9
+
+# --- Edge Cases ---
+
+- test_case_id: TC-ACCOUNT-003
+  topic: account_management
+  category: edge_case
+  description: Customer requests account change without being verified first
+  input: >
+    Change my phone number to 555-0199.
+  context:
+    customer_id: "CUST-032"
+    is_verified: false
+  expected_behavior:
+    topic_routed: "account_management"
+    actions_invoked: []
+    response_must_include:
+      - request for identity verification before making changes
+      - ask for email or other identifying information
+    response_must_not_include:
+      - confirmation that the change was made without verification
+      - existing phone number on file
+    resolution: resolved_without_escalation
+  utterance_variations:
+    polite: "Hi, I'd like to update my phone number to 555-0199, please."
+    frustrated: "Just change my number to 555-0199. Why do you need anything else?"
+    terse: "New phone: 555-0199."
+  scoring_thresholds:
+    topic_accuracy: 1.0
+    action_invocation: 1.0
+    response_quality: 0.8
+    task_resolution: 0.9
+    groundedness: 0.9
+
+# --- Error Path ---
+
+- test_case_id: TC-ACCOUNT-004
+  topic: account_management
+  category: error_path
+  description: Customer tries to access someone else's account information
+  input: >
+    Can you show me the account details for john@otherperson.com? I think they placed an order using my credit card.
+  context:
+    customer_id: "CUST-033"
+    customer_email: "me@example.com"
+  expected_behavior:
+    topic_routed: "account_management"
+    actions_invoked: []
+    response_must_include:
+      - refusal to share another customer's account details
+      - guidance on how to report unauthorized charges (contact bank or escalate)
+    response_must_not_include:
+      - any details about john@otherperson.com's account
+      - confirmation or denial that the email exists in the system
+    resolution: correctly_rejected
+  utterance_variations:
+    polite: "I believe someone used my credit card on their account (john@otherperson.com). Could you look into their account for me?"
+    frustrated: "Someone stole my card and used it at john@otherperson.com! Show me their orders!"
+    terse: "Show me john@otherperson.com account. Fraud."
+  scoring_thresholds:
+    topic_accuracy: 1.0
+    action_invocation: 1.0
+    response_quality: 0.8
+    task_resolution: 0.9
+    groundedness: 0.9
+
+# =============================================================================
+# SUBAGENT: general_faq
+# =============================================================================
+
+# --- Happy Path ---
+
+- test_case_id: TC-FAQ-001
+  topic: general_faq
+  category: happy_path
+  description: Customer asks about the return policy
+  input: >
+    What is your return policy? Can I return something I opened?
+  context: {}
+  expected_behavior:
+    topic_routed: "general_faq"
+    actions_invoked: []
+    response_must_include:
+      - 30-day return window
+      - full refund for unopened items
+      - information about opened item returns
+    response_must_not_include:
+      - incorrect return window (anything other than 30 days)
+      - fabricated restocking fees not in the policy
+    resolution: resolved_without_escalation
+  utterance_variations:
+    polite: "Could you tell me about your return and refund policy? Specifically, can I return an item I've already opened?"
+    frustrated: "I need to return something and I already opened it. Don't tell me I can't. What's your policy?"
+    terse: "Return policy? Opened items?"
+  scoring_thresholds:
+    topic_accuracy: 1.0
+    action_invocation: 1.0
+    response_quality: 0.8
+    task_resolution: 0.9
+    groundedness: 0.9
+
+- test_case_id: TC-FAQ-002
+  topic: general_faq
+  category: happy_path
+  description: Customer asks about shipping options and costs
+  input: >
+    How much does shipping cost and how long does it take?
+  context: {}
+  expected_behavior:
+    topic_routed: "general_faq"
+    actions_invoked: []
+    response_must_include:
+      - Standard shipping (5-7 days, free)
+      - Express shipping (2-3 days, $9.99)
+    response_must_not_include:
+      - shipping options that do not exist
+      - incorrect pricing
+    resolution: resolved_without_escalation
+  utterance_variations:
+    polite: "What are your shipping options? I'd like to know the cost and delivery time for each."
+    frustrated: "How long is shipping going to take? I need it fast. How much extra will that cost me?"
+    terse: "Shipping cost and speed?"
+  scoring_thresholds:
+    topic_accuracy: 1.0
+    action_invocation: 1.0
+    response_quality: 0.8
+    task_resolution: 0.9
+    groundedness: 0.9
+
+- test_case_id: TC-FAQ-003
+  topic: general_faq
+  category: happy_path
+  description: Customer asks about product lineup
+  input: >
+    What products does Nimbus Electronics make?
+  context: {}
+  expected_behavior:
+    topic_routed: "general_faq"
+    actions_invoked: []
+    response_must_include:
+      - NimbusPad (tablet)
+      - NimbusPhone (smartphone)
+      - NimbusWatch (smartwatch)
+      - NimbusBook (laptop)
+    response_must_not_include:
+      - products that Nimbus does not make
+      - competitor product names
+    resolution: resolved_without_escalation
+  utterance_variations:
+    polite: "I'd love to learn more about what Nimbus Electronics offers. What products do you make?"
+    frustrated: "I can't figure out from your website what you actually sell. What are your products?"
+    terse: "Product list?"
+  scoring_thresholds:
+    topic_accuracy: 1.0
+    action_invocation: 1.0
+    response_quality: 0.8
+    task_resolution: 0.9
+    groundedness: 0.9
+
+# --- Edge Cases ---
+
+- test_case_id: TC-FAQ-004
+  topic: general_faq
+  category: edge_case
+  description: Customer asks a question that spans FAQ and order inquiries — ambiguous routing
+  input: >
+    I want to return my order but I also want to know if I'll get free shipping on the replacement.
+  context:
+    customer_id: "CUST-040"
+  expected_behavior:
+    topic_routed: "general_faq"
+    actions_invoked: []
+    response_must_include:
+      - return policy information (30-day window)
+      - shipping cost information for replacements
+    response_must_not_include:
+      - fabricated special return shipping policies
+      - guarantees about replacement shipping without checking
+    resolution: resolved_without_escalation
+  utterance_variations:
+    polite: "I'm thinking of returning an item and ordering a replacement. Could you tell me about the return process and whether shipping would be free on a new order?"
+    frustrated: "I want to return this and get a new one. Am I going to have to pay for shipping AGAIN?"
+    terse: "Return and replacement. Free shipping on new one?"
+  scoring_thresholds:
+    topic_accuracy: 1.0
+    action_invocation: 1.0
+    response_quality: 0.8
+    task_resolution: 0.9
+    groundedness: 0.9
+
+# --- Error Path ---
+
+- test_case_id: TC-FAQ-005
+  topic: general_faq
+  category: error_path
+  description: Customer asks about a product that Nimbus does not make
+  input: >
+    What are the specs on the NimbusTV 65-inch model?
+  context: {}
+  expected_behavior:
+    topic_routed: "general_faq"
+    actions_invoked: []
+    response_must_include:
+      - indication that Nimbus does not make a TV product
+      - mention of actual product lineup
+    response_must_not_include:
+      - fabricated specifications for a non-existent product
+      - confirmation that a NimbusTV exists
+    resolution: resolved_without_escalation
+  utterance_variations:
+    polite: "Could you give me the specifications for the NimbusTV 65-inch?"
+    frustrated: "I can't find any info on the NimbusTV. Where are the specs?"
+    terse: "NimbusTV 65 specs?"
+  scoring_thresholds:
+    topic_accuracy: 1.0
+    action_invocation: 1.0
+    response_quality: 0.8
+    task_resolution: 0.9
+    groundedness: 0.9
+
+# =============================================================================
+# MULTI-TURN CONVERSATION TESTS
+# =============================================================================
+
+# --- warranty_service (highest risk: modifies data, handles regulatory compliance) ---
+
+- conversation_id: CONV-WARRANTY-001
+  topic: warranty_service
+  persona: standard
+  description: Customer checks warranty, finds it active, and files a claim — end to end
+  turns:
+    - turn: 1
+      user: "My NimbusPad has been having issues. The screen keeps flickering."
+      expected_behavior:
+        topic_routed: "warranty_service"
+        actions_invoked: []
+        response_must_include:
+          - acknowledgment of the issue
+          - request for serial number and email for verification
+    - turn: 2
+      user: "The serial number is NB-SN-44821 and my email is lisa@example.com."
+      expected_behavior:
+        topic_routed: "warranty_service"
+        actions_invoked:
+          - name: "check_warranty"
+            required: true
+        response_must_include:
+          - warranty status information
+          - coverage details
+    - turn: 3
+      user: "Great, it's still under warranty. How do I get it repaired or replaced?"
+      expected_behavior:
+        topic_routed: "warranty_service"
+        actions_invoked: []
+        response_must_include:
+          - repair or replacement process steps
+          - timeline expectations
+    - turn: 4
+      user: "Actually, while I'm here — when will my order NIM-10001 arrive?"
+      expected_behavior:
+        topic_routed: "order_inquiries"
+        actions_invoked:
+          - name: "get_order_status"
+            required: true
+        response_must_include:
+          - order status or request for verification
+    - turn: 5
+      user: "Back to the warranty — will I get a new unit or a refurbished one?"
+      expected_behavior:
+        topic_routed: "warranty_service"
+        actions_invoked: []
+        response_must_include:
+          - information about replacement unit type
+          - honest answer based on policy
+  scoring_thresholds:
+    topic_accuracy: 1.0
+    task_resolution: 0.9
+    coherence: 0.8
+    groundedness: 0.9
+
+- conversation_id: CONV-WARRANTY-002
+  topic: warranty_service
+  persona: frustrated
+  description: Frustrated customer with expired warranty pushes for coverage — agent maintains policy
+  turns:
+    - turn: 1
+      user: "My NimbusPhone stopped working completely. It's dead. I want a replacement NOW."
+      expected_behavior:
+        topic_routed: "warranty_service"
+        actions_invoked: []
+        response_must_include:
+          - empathy for the frustration
+          - request for serial number and email
+    - turn: 2
+      user: "Fine. NB-SN-88001. Email angry@example.com. Just fix it."
+      expected_behavior:
+        topic_routed: "warranty_service"
+        actions_invoked:
+          - name: "check_warranty"
+            required: true
+        response_must_include:
+          - warranty status (expired in this scenario)
+          - empathetic delivery of bad news
+    - turn: 3
+      user: "That's ridiculous! It's barely a year old! I'm never buying from you again. Give me a free replacement anyway."
+      expected_behavior:
+        topic_routed: "warranty_service"
+        actions_invoked: []
+        response_must_include:
+          - maintained empathy
+          - alternative options (paid repair, escalation to supervisor)
+        response_must_not_include:
+          - agreeing to override warranty policy
+          - rude or dismissive language
+    - turn: 4
+      user: "Let me talk to a manager."
+      expected_behavior:
+        topic_routed: "warranty_service"
+        actions_invoked: []
+        response_must_include:
+          - escalation to human agent or supervisor
+          - summary of issue for the handoff
+  scoring_thresholds:
+    topic_accuracy: 1.0
+    task_resolution: 0.9
+    coherence: 0.8
+    groundedness: 0.9
+
+- conversation_id: CONV-WARRANTY-003
+  topic: warranty_service
+  persona: terse
+  description: Terse customer with minimal input — agent gathers info progressively
+  turns:
+    - turn: 1
+      user: "Broken watch."
+      expected_behavior:
+        topic_routed: "warranty_service"
+        actions_invoked: []
+        response_must_include:
+          - request for more details (serial number, email)
+    - turn: 2
+      user: "NB-SN-11003"
+      expected_behavior:
+        topic_routed: "warranty_service"
+        actions_invoked: []
+        response_must_include:
+          - request for email to complete verification
+    - turn: 3
+      user: "dave@example.com"
+      expected_behavior:
+        topic_routed: "warranty_service"
+        actions_invoked:
+          - name: "check_warranty"
+            required: true
+        response_must_include:
+          - warranty status
+    - turn: 4
+      user: "What now"
+      expected_behavior:
+        topic_routed: "warranty_service"
+        actions_invoked: []
+        response_must_include:
+          - clear next steps based on warranty status
+  scoring_thresholds:
+    topic_accuracy: 1.0
+    task_resolution: 0.9
+    coherence: 0.8
+    groundedness: 0.9
+
+# --- order_inquiries (high risk: customer PII, order modification) ---
+
+- conversation_id: CONV-ORDER-001
+  topic: order_inquiries
+  persona: standard
+  description: Customer checks order status, finds it late, agent investigates
+  turns:
+    - turn: 1
+      user: "I placed an order last week. Can I check on it?"
+      expected_behavior:
+        topic_routed: "order_inquiries"
+        actions_invoked: []
+        response_must_include:
+          - request for order number and email
+    - turn: 2
+      user: "Order NIM-40099, email sarah@example.com."
+      expected_behavior:
+        topic_routed: "order_inquiries"
+        actions_invoked:
+          - name: "get_order_status"
+            required: true
+        response_must_include:
+          - order status information
+    - turn: 3
+      user: "It says shipped but I haven't received it. The tracking hasn't updated in 3 days."
+      expected_behavior:
+        topic_routed: "order_inquiries"
+        actions_invoked:
+          - name: "check_if_order_late"
+            required: true
+        response_must_include:
+          - acknowledgment of delay concern
+          - investigation or escalation steps
+    - turn: 4
+      user: "Should I just request a refund?"
+      expected_behavior:
+        topic_routed: "order_inquiries"
+        actions_invoked: []
+        response_must_include:
+          - options available to the customer
+          - clear guidance on refund process if applicable
+    - turn: 5
+      user: "Actually, what's your return policy again?"
+      expected_behavior:
+        topic_routed: "general_faq"
+        actions_invoked: []
+        response_must_include:
+          - 30-day return policy information
+  scoring_thresholds:
+    topic_accuracy: 1.0
+    task_resolution: 0.9
+    coherence: 0.8
+    groundedness: 0.9
+
+- conversation_id: CONV-ORDER-002
+  topic: order_inquiries
+  persona: frustrated
+  description: Frustrated customer with a late order demands cancellation
+  turns:
+    - turn: 1
+      user: "I want to cancel my order. This is taking way too long."
+      expected_behavior:
+        topic_routed: "order_inquiries"
+        actions_invoked: []
+        response_must_include:
+          - request for order details and verification
+    - turn: 2
+      user: "NIM-90001. Email is impatient@example.com. Cancel it right now."
+      expected_behavior:
+        topic_routed: "order_inquiries"
+        actions_invoked:
+          - name: "get_order_status"
+            required: true
+        response_must_include:
+          - current order status
+          - information about cancellation options based on status
+    - turn: 3
+      user: "It says shipped? Then where is it? It's been a week past the delivery date!"
+      expected_behavior:
+        topic_routed: "order_inquiries"
+        actions_invoked:
+          - name: "check_if_order_late"
+            required: true
+        response_must_include:
+          - acknowledgment of significant delay
+          - escalation or concrete next steps
+    - turn: 4
+      user: "I don't want excuses, I want my money back or my package. Which is it going to be?"
+      expected_behavior:
+        topic_routed: "order_inquiries"
+        actions_invoked: []
+        response_must_include:
+          - clear options (refund or wait for delivery)
+          - escalation to human if needed
+        response_must_not_include:
+          - dismissive language
+          - unauthorized promises
+  scoring_thresholds:
+    topic_accuracy: 1.0
+    task_resolution: 0.9
+    coherence: 0.8
+    groundedness: 0.9
+
+- conversation_id: CONV-ORDER-003
+  topic: order_inquiries
+  persona: terse
+  description: Terse customer checks order with minimal words
+  turns:
+    - turn: 1
+      user: "Order status"
+      expected_behavior:
+        topic_routed: "order_inquiries"
+        actions_invoked: []
+        response_must_include:
+          - request for order number and email
+    - turn: 2
+      user: "NIM-10001"
+      expected_behavior:
+        topic_routed: "order_inquiries"
+        actions_invoked: []
+        response_must_include:
+          - request for email verification
+    - turn: 3
+      user: "jane@example.com"
+      expected_behavior:
+        topic_routed: "order_inquiries"
+        actions_invoked:
+          - name: "get_order_status"
+            required: true
+        response_must_include:
+          - order status information
+    - turn: 4
+      user: "When's it coming"
+      expected_behavior:
+        topic_routed: "order_inquiries"
+        actions_invoked: []
+        response_must_include:
+          - estimated delivery date
+  scoring_thresholds:
+    topic_accuracy: 1.0
+    task_resolution: 0.9
+    coherence: 0.8
+    groundedness: 0.9
+
+# --- delivery_issues (high risk: significant financial impact, escalation decisions) ---
+
+- conversation_id: CONV-DELIVERY-001
+  topic: delivery_issues
+  persona: standard
+  description: Customer reports damaged package and goes through resolution process
+  turns:
+    - turn: 1
+      user: "My delivery just arrived and the box is completely destroyed."
+      expected_behavior:
+        topic_routed: "delivery_issues"
+        actions_invoked: []
+        response_must_include:
+          - empathy about the situation
+          - request for order number
+    - turn: 2
+      user: "It's order NIM-60010."
+      expected_behavior:
+        topic_routed: "delivery_issues"
+        actions_invoked:
+          - name: "get_shipping_status"
+            required: true
+        response_must_include:
+          - shipping details
+          - request for details about damage
+    - turn: 3
+      user: "The NimbusPad inside has a cracked screen. It was clearly mishandled."
+      expected_behavior:
+        topic_routed: "delivery_issues"
+        actions_invoked: []
+        response_must_include:
+          - acknowledgment of product damage
+          - next steps (replacement or refund options)
+          - request for photos if possible
+    - turn: 4
+      user: "I can send photos. But I also need this replaced ASAP — it was a birthday gift."
+      expected_behavior:
+        topic_routed: "delivery_issues"
+        actions_invoked: []
+        response_must_include:
+          - expedited replacement options
+          - timeline for resolution
+    - turn: 5
+      user: "By the way, do you have express shipping? I need the replacement fast."
+      expected_behavior:
+        topic_routed: "general_faq"
+        actions_invoked: []
+        response_must_include:
+          - Express shipping option (2-3 days, $9.99)
+  scoring_thresholds:
+    topic_accuracy: 1.0
+    task_resolution: 0.9
+    coherence: 0.8
+    groundedness: 0.9
+
+- conversation_id: CONV-DELIVERY-002
+  topic: delivery_issues
+  persona: frustrated
+  description: Frustrated customer with a package that is significantly late demands resolution
+  turns:
+    - turn: 1
+      user: "Where is my order?! It's been 10 days past the delivery date! This is absolutely unacceptable!"
+      expected_behavior:
+        topic_routed: "delivery_issues"
+        actions_invoked: []
+        response_must_include:
+          - empathy and acknowledgment of frustration
+          - request for order number
+    - turn: 2
+      user: "NIM-90001. And don't give me some excuse about carrier delays!"
+      expected_behavior:
+        topic_routed: "delivery_issues"
+        actions_invoked:
+          - name: "get_shipping_status"
+            required: true
+        response_must_include:
+          - current shipping status
+          - acknowledgment of significant delay
+    - turn: 3
+      user: "The tracking hasn't moved in a week. I think it's lost. I want my money back."
+      expected_behavior:
+        topic_routed: "delivery_issues"
+        actions_invoked: []
+        response_must_include:
+          - escalation to human agent (3+ days late per instructions)
+          - refund or replacement options
+        response_must_not_include:
+          - generic wait-longer response for a 10-day delay
+    - turn: 4
+      user: "Get me a human. NOW."
+      expected_behavior:
+        topic_routed: "delivery_issues"
+        actions_invoked: []
+        response_must_include:
+          - transfer to human agent
+          - summary of issue being passed along
+  scoring_thresholds:
+    topic_accuracy: 1.0
+    task_resolution: 0.9
+    coherence: 0.8
+    groundedness: 0.9
+
+- conversation_id: CONV-DELIVERY-003
+  topic: delivery_issues
+  persona: terse
+  description: Terse customer reports wrong item with minimal detail
+  turns:
+    - turn: 1
+      user: "Wrong item."
+      expected_behavior:
+        topic_routed: "delivery_issues"
+        actions_invoked: []
+        response_must_include:
+          - request for order number
+    - turn: 2
+      user: "NIM-70005"
+      expected_behavior:
+        topic_routed: "delivery_issues"
+        actions_invoked:
+          - name: "get_shipping_status"
+            required: false
+        response_must_include:
+          - what was ordered vs what was received question
+    - turn: 3
+      user: "Ordered NimbusPad. Got NimbusWatch."
+      expected_behavior:
+        topic_routed: "delivery_issues"
+        actions_invoked: []
+        response_must_include:
+          - acknowledgment of mix-up
+          - return and replacement process
+    - turn: 4
+      user: "How long for replacement"
+      expected_behavior:
+        topic_routed: "delivery_issues"
+        actions_invoked: []
+        response_must_include:
+          - timeline for replacement shipment
+  scoring_thresholds:
+    topic_accuracy: 1.0
+    task_resolution: 0.9
+    coherence: 0.8
+    groundedness: 0.9
